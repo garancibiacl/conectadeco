@@ -1,0 +1,63 @@
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import PrivateRoute from '../components/PrivateRoute'
+import Home from '../pages/Home'
+import Catalogo from '../pages/Catalogo'
+import Login from '../pages/Login'
+import Registro from '../pages/Registro'
+import Dashboard from '../pages/Dashboard'
+import Carrito from '../pages/Carrito'
+
+export default function AppRouter() {
+  return (
+    <>
+      <Routes>
+        {/* Rutas con Navbar */}
+        <Route
+          path="/"
+          element={
+            <>
+              <Navbar />
+              <Home />
+            </>
+          }
+        />
+        <Route
+          path="/catalogo"
+          element={
+            <>
+              <Navbar />
+              <Catalogo />
+            </>
+          }
+        />
+        <Route
+          path="/carrito"
+          element={
+            <>
+              <Navbar />
+              <Carrito />
+            </>
+          }
+        />
+
+        {/* Auth (sin Navbar) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+
+        {/* Rutas privadas (sin Navbar, tienen sidebar propio) */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  )
+}
