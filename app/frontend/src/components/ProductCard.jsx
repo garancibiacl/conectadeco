@@ -43,12 +43,12 @@ export default function ProductCard({ producto }) {
           {nombre}
         </h3>
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900">
+          <span className="text-lg font-semibold text-gray-900">
             ${Number(precio).toLocaleString('es-CL')}
           </span>
           <button
             disabled={stock === 0}
-            className="flex items-center gap-1.5 bg-red-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 bg-red-600 text-white text-xs font-medium px-3 py-2 rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <ShoppingCart size={13} /> Agregar
           </button>
