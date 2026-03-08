@@ -8,9 +8,8 @@ El negocio base es **ConectaDeco** ([@conectadeco.cl](https://instagram.com/cone
 
 ## Stack Tecnológico
 
-- **Frontend**: React.js, TypeScript, Tailwind CSS
+- **Frontend**: React.js, Tailwind CSS
 - **Backend**: Node.js, Express.js, PostgreSQL
-- **Infraestructura**: Docker, AWS/Azure
 - **Base de Datos**: PostgreSQL
 - **Versionado**: Git + GitHub
 
@@ -19,7 +18,6 @@ El negocio base es **ConectaDeco** ([@conectadeco.cl](https://instagram.com/cone
 - Node.js (v18+)
 - npm o yarn
 - PostgreSQL (v13+)
-- Docker (opcional)
 
 ## Instalación
 
