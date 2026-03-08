@@ -1,24 +1,25 @@
+import coleccion1 from '../../assets/images/coleccion-1.png'
+import coleccion2 from '../../assets/images/coleccion-2.png'
+import coleccion3 from '../../assets/images/coleccion-3.png'
+
 const categories = [
   {
     id: 'peonias',
     title: 'Colección Peonías',
-    subtitle: 'Suavidad romántica',
-    image:
-      'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=900&q=80',
+    subtitle: 'Suavidad y elegancia sutil',
+    image: coleccion1,
   },
   {
     id: 'tropical',
     title: 'Vibras Tropicales',
-    subtitle: 'Energía natural',
-    image:
-      'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80',
+    subtitle: 'Energía para tus días',
+    image: coleccion2,
   },
   {
     id: 'minimal',
     title: 'Minimal Flora',
-    subtitle: 'Estilo delicado',
-    image:
-      'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?auto=format&fit=crop&w=900&q=80',
+    subtitle: 'Sutileza en cada trazo',
+    image: coleccion3,
   },
 ]
 
@@ -48,8 +49,8 @@ export default function FeaturedSection() {
               <div className="absolute bottom-0 w-full p-5 text-white">
                 <h3 className="text-xl font-semibold">{item.title}</h3>
                 <p className="mt-1 text-sm font-normal leading-relaxed text-white/85">{item.subtitle}</p>
-                <button className="mt-4 rounded-full border border-white/70 px-4 py-1.5 text-xs font-semibold transition-colors hover:bg-white hover:text-slate-800">
-                  Ver colección
+                <button className="mt-4 text-xs font-semibold transition-colors hover:text-white/80">
+                  Ver colección →
                 </button>
               </div>
             </article>
