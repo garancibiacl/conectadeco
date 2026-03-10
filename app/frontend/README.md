@@ -1,7 +1,7 @@
 # ConectaDeco Frontend
 
 Frontend de ConectaDeco desarrollado con React + Vite.
-Este documento está actualizado para el **Hito 2** y en español.
+Este documento está actualizado para el **Hito 2**
 
 ## Objetivo del Hito 2
 Implementar la base funcional del e-commerce con foco en:
