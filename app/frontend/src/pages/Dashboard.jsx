@@ -10,8 +10,16 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ productos: 0, pedidos: 0 })
 
   useEffect(() => {
-    api.get('/productos?limit=1')
-      .then(({ data }) => setStats((s) => ({ ...s, productos: data.total || 0 })))
+    Promise.all([
+      api.get('/productos?limit=1'),
+      api.get('/orders/me'),
+    ])
+      .then(([productosResponse, pedidosResponse]) => {
+        setStats({
+          productos: productosResponse.data.total || 0,
+          pedidos: pedidosResponse.data.total || 0,
+        })
+      })
       .catch(() => {})
   }, [])
 

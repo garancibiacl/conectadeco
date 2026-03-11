@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, ShoppingBag } from 'lucide-react'
 import Swal from 'sweetalert2'
+import api from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 // Estado local temporal hasta integrar Context de carrito
 const DEMO_ITEMS = [
@@ -11,7 +13,9 @@ const DEMO_ITEMS = [
 
 export default function Carrito() {
   const navigate = useNavigate()
+  const { session } = useAuth()
   const [items, setItems] = useState(DEMO_ITEMS)
+  const [procesando, setProcesando] = useState(false)
 
   const eliminar = (id) => setItems((prev) => prev.filter((i) => i.id !== id))
 
@@ -23,13 +27,48 @@ export default function Carrito() {
 
   const subtotal = items.reduce((sum, i) => sum + i.precio * i.cantidad, 0)
 
-  const handleCompra = () => {
-    Swal.fire({
-      icon: 'success',
-      title: '¡Compra procesada!',
-      text: 'Tu pedido ha sido confirmado.',
-      confirmButtonColor: '#dc2626',
-    })
+  const handleCompra = async () => {
+    if (!session) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Inicia sesión para comprar',
+        text: 'Debes autenticarte antes de confirmar un pedido.',
+        confirmButtonColor: '#dc2626',
+      })
+      navigate('/login')
+      return
+    }
+
+    setProcesando(true)
+
+    try {
+      const payload = {
+        items: items.map((item) => ({
+          product_id: item.id,
+          qty: item.cantidad,
+        })),
+      }
+
+      const { data } = await api.post('/orders', payload)
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Compra procesada!',
+        text: `Tu pedido #${data.pedido.id} fue confirmado correctamente.`,
+        confirmButtonColor: '#dc2626',
+      })
+
+      setItems([])
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo procesar la compra',
+        text: err.response?.data?.message || 'Intenta nuevamente en unos minutos.',
+        confirmButtonColor: '#dc2626',
+      })
+    } finally {
+      setProcesando(false)
+    }
   }
 
   if (items.length === 0) {
@@ -100,9 +139,10 @@ export default function Carrito() {
             </div>
             <button
               onClick={handleCompra}
+              disabled={procesando}
               className="w-full bg-red-600 text-white py-3 rounded-xl font-medium hover:bg-red-700 transition-colors"
             >
-              Procesar compra
+              {procesando ? 'Procesando...' : 'Procesar compra'}
             </button>
           </div>
         </div>
