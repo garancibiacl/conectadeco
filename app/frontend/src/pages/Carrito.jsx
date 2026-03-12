@@ -4,28 +4,43 @@ import { Trash2, ShoppingBag } from 'lucide-react'
 import Swal from 'sweetalert2'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
-
-// Estado local temporal hasta integrar Context de carrito
-const DEMO_ITEMS = [
-  { id: 1, nombre: 'Premium Silicone Case - Rojo Crimson', precio: 29900, cantidad: 1, imagen: null },
-  { id: 2, nombre: 'Crystal MagSafe Case', precio: 34500, cantidad: 1, imagen: null },
-]
+import { useShop } from '../context/ShopContext'
 
 export default function Carrito() {
   const navigate = useNavigate()
   const { session } = useAuth()
-  const [items, setItems] = useState(DEMO_ITEMS)
+  const { cart, loadingCart, updateCartItem, removeCartItem, refreshCart } = useShop()
   const [procesando, setProcesando] = useState(false)
+  const items = cart.items
+  const subtotal = cart.subtotal
 
-  const eliminar = (id) => setItems((prev) => prev.filter((i) => i.id !== id))
-
-  const cambiarCantidad = (id, delta) => {
-    setItems((prev) =>
-      prev.map((i) => i.id === id ? { ...i, cantidad: Math.max(1, i.cantidad + delta) } : i)
-    )
+  const eliminar = async (productId) => {
+    try {
+      await removeCartItem(productId)
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo eliminar',
+        text: err.response?.data?.message || 'Intenta nuevamente.',
+        confirmButtonColor: '#dc2626',
+      })
+    }
   }
 
-  const subtotal = items.reduce((sum, i) => sum + i.precio * i.cantidad, 0)
+  const cambiarCantidad = async (productId, cantidadActual, delta) => {
+    const nuevaCantidad = Math.max(1, cantidadActual + delta)
+
+    try {
+      await updateCartItem(productId, nuevaCantidad)
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo actualizar la cantidad',
+        text: err.response?.data?.message || 'Intenta nuevamente.',
+        confirmButtonColor: '#dc2626',
+      })
+    }
+  }
 
   const handleCompra = async () => {
     if (!session) {
@@ -58,7 +73,8 @@ export default function Carrito() {
         confirmButtonColor: '#dc2626',
       })
 
-      setItems([])
+      await Promise.all(items.map((item) => removeCartItem(item.productoId)))
+      await refreshCart()
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -69,6 +85,21 @@ export default function Carrito() {
     } finally {
       setProcesando(false)
     }
+  }
+
+  if (loadingCart) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+          <div className="space-y-3">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="h-28 rounded-2xl bg-stone-100 animate-pulse" />
+            ))}
+          </div>
+          <div className="h-64 rounded-2xl bg-stone-100 animate-pulse" />
+        </div>
+      </div>
+    )
   }
 
   if (items.length === 0) {
@@ -98,20 +129,20 @@ export default function Carrito() {
           {items.map((item) => (
             <div key={item.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm">
               <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-300 text-xs">
-                {item.imagen ? <img src={item.imagen} alt={item.nombre} className="w-full h-full object-cover rounded-lg" /> : 'IMG'}
+                {item.producto.imagen ? <img src={item.producto.imagen} alt={item.producto.nombre} className="w-full h-full object-cover rounded-lg" /> : 'IMG'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{item.nombre}</p>
-                <p className="text-xs text-gray-400 mt-0.5">Compatible con iPhone 15 Pro Max</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{item.producto.nombre}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{item.producto.modelo || item.producto.categoria}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <button onClick={() => cambiarCantidad(item.id, -1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">-</button>
+                  <button onClick={() => cambiarCantidad(item.productoId, item.cantidad, -1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">-</button>
                   <span className="text-sm w-4 text-center">{item.cantidad}</span>
-                  <button onClick={() => cambiarCantidad(item.id, 1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">+</button>
+                  <button onClick={() => cambiarCantidad(item.productoId, item.cantidad, 1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">+</button>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="font-semibold text-gray-900">${(item.precio * item.cantidad / 100).toFixed(2)}</p>
-                <button onClick={() => eliminar(item.id)} className="mt-2 text-gray-400 hover:text-red-500 transition-colors">
+                <p className="font-semibold text-gray-900">${item.subtotal.toLocaleString('es-CL')}</p>
+                <button onClick={() => eliminar(item.productoId)} className="mt-2 text-gray-400 hover:text-red-500 transition-colors">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -126,7 +157,7 @@ export default function Carrito() {
             <div className="space-y-2 text-sm mb-4">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>${(subtotal / 100).toFixed(2)}</span>
+                <span>${subtotal.toLocaleString('es-CL')}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Envío</span>
@@ -134,7 +165,7 @@ export default function Carrito() {
               </div>
               <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-100">
                 <span>Total</span>
-                <span>${(subtotal / 100).toFixed(2)}</span>
+                <span>${subtotal.toLocaleString('es-CL')}</span>
               </div>
             </div>
             <button

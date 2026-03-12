@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Package, ShoppingBag, User, LogOut, LayoutDashboard } from 'lucide-react'
+import { Package, ShoppingBag, Heart, LogOut, LayoutDashboard } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { useShop } from '../context/ShopContext'
 
 export default function Dashboard() {
   const { session, logout } = useAuth()
+  const { favorites, cart } = useShop()
   const navigate = useNavigate()
   const [stats, setStats] = useState({ productos: 0, pedidos: 0 })
 
@@ -45,8 +47,8 @@ export default function Dashboard() {
           <Link to="/carrito" className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-white/10 text-gray-300 text-sm transition-colors">
             <ShoppingBag size={16} /> Mis Pedidos
           </Link>
-          <Link to="/perfil" className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-white/10 text-gray-300 text-sm transition-colors">
-            <User size={16} /> Mi Perfil
+          <Link to="/favoritos" className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-white/10 text-gray-300 text-sm transition-colors">
+            <Heart size={16} /> Favoritos
           </Link>
         </nav>
 
@@ -70,7 +72,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Productos</p>
             <p className="text-3xl font-bold text-gray-900">{stats.productos}</p>
@@ -86,6 +88,11 @@ export default function Dashboard() {
             }`}>
               {session?.user?.role || 'usuario'}
             </span>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Favoritos</p>
+            <p className="text-3xl font-bold text-gray-900">{favorites.length}</p>
+            <p className="mt-1 text-xs text-gray-500">{cart.total} item{cart.total === 1 ? '' : 's'} en carrito</p>
           </div>
         </div>
 
@@ -104,6 +111,12 @@ export default function Dashboard() {
               className="bg-gray-100 text-gray-700 text-sm px-4 py-2.5 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Mi carrito
+            </button>
+            <button
+              onClick={() => navigate('/favoritos')}
+              className="bg-rose-50 text-rose-700 text-sm px-4 py-2.5 rounded-lg hover:bg-rose-100 transition-colors"
+            >
+              Ver favoritos
             </button>
           </div>
         </div>

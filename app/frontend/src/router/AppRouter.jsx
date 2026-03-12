@@ -7,6 +7,7 @@ import Login from '../pages/Login'
 import Registro from '../pages/Registro'
 import Dashboard from '../pages/Dashboard'
 import Carrito from '../pages/Carrito'
+import Favoritos from '../pages/Favoritos'
 
 export default function AppRouter() {
   return (
@@ -38,6 +39,15 @@ export default function AppRouter() {
               <Navbar />
               <Carrito />
             </>
+          }
+        />
+        <Route
+          path="/favoritos"
+          element={
+            <PrivateRoute>
+              <Navbar />
+              <Favoritos />
+            </PrivateRoute>
           }
         />
 

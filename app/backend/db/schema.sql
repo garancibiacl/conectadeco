@@ -19,6 +19,13 @@ CREATE TABLE IF NOT EXISTS productos (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS categorias (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(80) NOT NULL UNIQUE,
+  slug VARCHAR(80) NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS pedidos (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -33,6 +40,30 @@ CREATE TABLE IF NOT EXISTS pedido_items (
   producto_id INTEGER NOT NULL REFERENCES productos(id),
   cantidad INTEGER NOT NULL CHECK (cantidad > 0),
   precio_unitario NUMERIC(10, 2) NOT NULL CHECK (precio_unitario >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS producto_categorias (
+  producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+  categoria_id INTEGER NOT NULL REFERENCES categorias(id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (producto_id, categoria_id)
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+  cantidad INTEGER NOT NULL DEFAULT 1 CHECK (cantidad > 0),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (usuario_id, producto_id)
+);
+
+CREATE TABLE IF NOT EXISTS favorites (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (usuario_id, producto_id)
 );
 
 INSERT INTO usuarios (nombre, email, password_hash, role)
@@ -53,3 +84,14 @@ VALUES
   ('Midnight Orchid', 'Edición premium con flores oscuras y protección lateral.', 26990, 9, 'iPhone 13', 'iPhone 13 Pro', 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=80'),
   ('Golden Sunflower', 'Diseño vibrante con patrón de girasoles.', 24990, 14, 'iPhone 13', 'iPhone 13', 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO categorias (nombre, slug)
+SELECT DISTINCT categoria, LOWER(REPLACE(categoria, ' ', '-'))
+FROM productos
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO producto_categorias (producto_id, categoria_id)
+SELECT p.id, c.id
+FROM productos p
+INNER JOIN categorias c ON c.nombre = p.categoria
+ON CONFLICT (producto_id, categoria_id) DO NOTHING;

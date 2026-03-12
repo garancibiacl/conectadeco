@@ -34,10 +34,11 @@ Crear la base `conectadeco` en PostgreSQL y ejecutar:
 psql "$DATABASE_URL" -f db/schema.sql
 ```
 
-El script crea tablas `usuarios`, `productos`, `pedidos`, `pedido_items`, además de:
+El script crea un modelo relacional alineado al Hito 1 con tablas `usuarios`, `productos`, `categorias`, `producto_categorias`, `pedidos`, `pedido_items`, `cart_items` y `favorites`, además de:
 
 - usuario admin demo: `admin@conectadeco.com` / `admin123`
 - productos semilla para catálogo y carrito demo
+- categorías semilla derivadas de los productos ya cargados
 
 ## Scripts npm
 
@@ -54,12 +55,21 @@ El script crea tablas `usuarios`, `productos`, `pedidos`, `pedido_items`, ademá
 - `GET /api/productos/:id`
 - `POST /api/orders`
 - `GET /api/orders/me`
+- `GET /api/favorites`
+- `POST /api/favorites/:productId`
+- `DELETE /api/favorites/:productId`
+- `GET /api/cart`
+- `POST /api/cart`
+- `PUT /api/cart/:productId`
+- `DELETE /api/cart/:productId`
 
 ## Respuestas esperadas
 
 - `POST /api/auth/register` y `POST /api/auth/login` retornan `{ token, user }`
 - `GET /api/productos` retorna `{ productos, total }`
 - `GET /api/orders/me` retorna `{ pedidos, total }`
+- `GET /api/favorites` retorna `{ favoritos, total }`
+- `GET /api/cart` retorna `{ items, total, subtotal }`
 - Errores retornan `{ ok: false, message }`
 
 ## Tests
@@ -72,3 +82,5 @@ Los tests cubren:
 - listado y detalle de productos
 - autorización y creación de pedidos
 - historial de pedidos
+- favoritos autenticados
+- carrito persistente autenticado

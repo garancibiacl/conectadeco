@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, User, LogOut, Menu, X } from 'lucide-react'
+import { ShoppingCart, User, LogOut, Menu, X, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useShop } from '../context/ShopContext'
 
 export default function Navbar() {
   const { session, logout } = useAuth()
+  const { cart, favorites } = useShop()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -21,8 +23,23 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
           <Link to="/" className="hover:text-red-600 transition-colors">Inicio</Link>
           <Link to="/catalogo" className="hover:text-red-600 transition-colors">Catálogo</Link>
+          {session && (
+            <Link to="/favoritos" className="hover:text-red-600 transition-colors flex items-center gap-1">
+              <Heart size={16} /> Favoritos
+              {favorites.length > 0 && (
+                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-600">
+                  {favorites.length}
+                </span>
+              )}
+            </Link>
+          )}
           <Link to="/carrito" className="hover:text-red-600 transition-colors flex items-center gap-1">
             <ShoppingCart size={16} /> Carrito
+            {cart.total > 0 && (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+                {cart.total}
+              </span>
+            )}
           </Link>
         </div>
 
@@ -69,6 +86,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3 text-sm">
           <Link to="/" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-red-600">Inicio</Link>
           <Link to="/catalogo" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-red-600">Catálogo</Link>
+          {session && <Link to="/favoritos" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-red-600">Favoritos</Link>}
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-red-600">Carrito</Link>
           {session ? (
             <>

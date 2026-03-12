@@ -228,6 +228,7 @@ Probé varias rutas importantes para asegurarme de que el backend responde bien.
 ## Coherencia con Hito 1 y Hito 2
 
 - Se respetó la idea del proyecto definida desde el Hito 1: marketplace de fundas premium
+- La base PostgreSQL mantiene la estructura relacional esperada desde el ERD del Hito 1: usuarios, productos, pedidos, items de pedido, categorías, relación producto-categoría, carrito y favoritos
 - Las rutas del backend responden a las necesidades del frontend desarrollado en el Hito 2
 - El frontend ya consume este backend para login, registro, productos, carrito y pedidos
 - Se mantuvo una estructura modular para que el proyecto quede más ordenado y fácil de seguir
