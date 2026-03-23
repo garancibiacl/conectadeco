@@ -5,45 +5,7 @@ import ProductCard from '../components/ProductCard'
 import HeroSection from '../components/home/HeroSection'
 import FeaturedSection from '../components/home/FeaturedSection'
 import PromoBanner from '../components/home/PromoBanner'
-
-const mockFeaturedProducts = [
-  {
-    id: 101,
-    nombre: 'Wild Roses Blush',
-    precio: 24990,
-    imagen:
-      'https://images.unsplash.com/photo-1601593346740-925612772716?auto=format&fit=crop&w=900&q=80',
-    categoria: 'Rosas',
-    stock: 12,
-  },
-  {
-    id: 102,
-    nombre: 'Spring Blossom Case',
-    precio: 22990,
-    imagen:
-      'https://images.unsplash.com/photo-1560693135-581d2e8c5e4f?auto=format&fit=crop&w=900&q=80',
-    categoria: 'Primavera',
-    stock: 18,
-  },
-  {
-    id: 103,
-    nombre: 'Midnight Orchid',
-    precio: 26990,
-    imagen:
-      'https://images.unsplash.com/photo-1551542159-1e0b48d387f6?auto=format&fit=crop&w=900&q=80',
-    categoria: 'Premium',
-    stock: 9,
-  },
-  {
-    id: 104,
-    nombre: 'Golden Sunflower',
-    precio: 24990,
-    imagen:
-      'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?auto=format&fit=crop&w=900&q=80',
-    categoria: 'Summer',
-    stock: 14,
-  },
-]
+import api from '../services/api'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -51,12 +13,28 @@ export default function Home() {
   const [loadingProducts, setLoadingProducts] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProducts(mockFeaturedProducts)
-      setLoadingProducts(false)
-    }, 450)
+    let cancelled = false
 
-    return () => clearTimeout(timer)
+    api.get('/productos?limit=4')
+      .then(({ data }) => {
+        if (!cancelled) {
+          setProducts(data.productos || [])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProducts([])
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingProducts(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (

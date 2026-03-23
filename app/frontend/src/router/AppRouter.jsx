@@ -8,6 +8,7 @@ import Registro from '../pages/Registro'
 import Dashboard from '../pages/Dashboard'
 import Carrito from '../pages/Carrito'
 import Favoritos from '../pages/Favoritos'
+import ProductDetail from '../pages/ProductDetail'
 
 export default function AppRouter() {
   return (
@@ -29,6 +30,15 @@ export default function AppRouter() {
             <>
               <Navbar />
               <Catalogo />
+            </>
+          }
+        />
+        <Route
+          path="/producto/:id"
+          element={
+            <>
+              <Navbar />
+              <ProductDetail />
             </>
           }
         />
