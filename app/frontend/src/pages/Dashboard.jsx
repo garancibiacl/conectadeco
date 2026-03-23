@@ -1,29 +1,21 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Package, ShoppingBag, Heart, LogOut, LayoutDashboard } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import api from '../services/api'
-import { useShop } from '../context/ShopContext'
+import { useAuth } from '../hooks/useAuth'
+import { useShop } from '../hooks/useShop'
+import { useProductos } from '../hooks/useProductos'
+import { usePedidos } from '../hooks/usePedidos'
 
 export default function Dashboard() {
   const { session, logout } = useAuth()
   const { favorites, cart } = useShop()
   const navigate = useNavigate()
-  const [stats, setStats] = useState({ productos: 0, pedidos: 0 })
+  const { productos } = useProductos()
+  const { total: totalPedidos } = usePedidos()
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/productos?limit=1'),
-      api.get('/orders/me'),
-    ])
-      .then(([productosResponse, pedidosResponse]) => {
-        setStats({
-          productos: productosResponse.data.total || 0,
-          pedidos: pedidosResponse.data.total || 0,
-        })
-      })
-      .catch(() => {})
-  }, [])
+  const stats = {
+    productos: productos.length,
+    pedidos: totalPedidos,
+  }
 
   const esAdmin = session?.user?.role === 'admin'
 

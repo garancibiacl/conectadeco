@@ -1,22 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Search } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
-import api from '../services/api'
+import { useProductos } from '../hooks/useProductos'
 
 const CATEGORIAS = ['Todas', 'iPhone 15', 'iPhone 14', 'iPhone 13']
 
 export default function Catalogo() {
-  const [productos, setProductos] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { productos, loading } = useProductos()
   const [busqueda, setBusqueda] = useState('')
   const [categoriaActiva, setCategoriaActiva] = useState('Todas')
-
-  useEffect(() => {
-    api.get('/productos')
-      .then(({ data }) => setProductos(data.productos || data))
-      .catch(() => setProductos([]))
-      .finally(() => setLoading(false))
-  }, [])
 
   const filtrados = productos.filter((p) => {
     const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase())
