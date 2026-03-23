@@ -2,6 +2,8 @@ const { Pool } = require('pg');
 
 const { env } = require('../config/env');
 
+const isProduction = env.nodeEnv === 'production';
+
 const poolConfig = env.databaseUrl
   ? { connectionString: env.databaseUrl }
   : {
@@ -12,7 +14,8 @@ const poolConfig = env.databaseUrl
       password: env.dbPassword,
     };
 
-if (env.dbSsl) {
+// SSL requerido en producción (Render) o cuando se indica explícitamente
+if (isProduction || env.dbSsl) {
   poolConfig.ssl = { rejectUnauthorized: false };
 }
 

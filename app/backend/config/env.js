@@ -6,7 +6,8 @@ dotenv.config({
 });
 
 const nodeEnv = process.env.NODE_ENV || 'development';
-const jwtSecret = process.env.JWT_SECRET;
+// Acepta JWT_SECRET o JWT_SECRET_KEY (formato del ejemplo de clase)
+const jwtSecret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
 
 if (!jwtSecret && nodeEnv !== 'test') {
   throw new Error('Falta definir JWT_SECRET en las variables de entorno.');
@@ -20,7 +21,8 @@ const env = {
   databaseUrl: process.env.DATABASE_URL,
   dbHost: process.env.DB_HOST || 'localhost',
   dbPort: Number(process.env.DB_PORT || 5432),
-  dbName: process.env.DB_NAME || 'conectadeco',
+  // Acepta DB_NAME o DB_DATABASE (formato del ejemplo de clase)
+  dbName: process.env.DB_NAME || process.env.DB_DATABASE || 'conectadeco',
   dbUser: process.env.DB_USER || 'postgres',
   dbPassword: process.env.DB_PASSWORD || '',
   dbSsl: process.env.DB_SSL === 'true',
