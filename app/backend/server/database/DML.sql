@@ -22,7 +22,7 @@ VALUES
     'Premium Silicone Case - Rojo Crimson',
     'Funda premium de silicona con acabado suave y protección reforzada.',
     29900, 16, 'iPhone 15', 'iPhone 15 Pro Max',
-    'https://images.unsplash.com/photo-1601593346740-925612772716?auto=format&fit=crop&w=900&q=80'
+    'https://res.cloudinary.com/dwfexginq/image/upload/v1773617625/tclp19gngfzlhowadmxx.png'
   ),
   (
     'Crystal MagSafe Case',
@@ -48,6 +48,7 @@ VALUES
     26990, 9, 'iPhone 13', 'iPhone 13 Pro',
     'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=80'
   ),
+
   (
     'Golden Sunflower',
     'Diseño vibrante con patrón de girasoles.',

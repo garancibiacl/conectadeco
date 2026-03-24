@@ -3,6 +3,7 @@ import { ShoppingCart, User, LogOut, Menu, X, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useShop } from '../context/ShopContext'
+import conectaDecoLogo from '../assets/images/conecta-deco.png'
 
 export default function Navbar() {
   const { session, logout } = useAuth()
@@ -14,9 +15,12 @@ export default function Navbar() {
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="bg-red-600 text-white font-bold text-sm px-2 py-1 rounded">CD</div>
-          <span className="font-bold text-gray-900 text-lg">ConectaDeco</span>
+        <Link to="/" className="flex items-center">
+          <img
+            src={conectaDecoLogo}
+            alt="ConectaDeco"
+            className="h-10 w-auto object-contain sm:h-12"
+          />
         </Link>
 
         {/* Nav links desktop */}
