@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard'
 import HeroSection from '../components/home/HeroSection'
 import FeaturedSection from '../components/home/FeaturedSection'
 import PromoBanner from '../components/home/PromoBanner'
+import Reveal from '../components/motion/Reveal'
 import api from '../services/api'
 
 export default function Home() {
@@ -43,14 +44,14 @@ export default function Home() {
 
       <FeaturedSection />
 
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
+      <Reveal as="section" className="section-shell px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 text-center">
+          <Reveal className="mb-8 text-center" stagger>
             <h2 className="text-3xl font-semibold text-slate-800">Top Carcasas</h2>
             <p className="mt-2 text-sm font-normal leading-relaxed text-slate-500">
               Diseños que están marcando tendencia esta semana.
             </p>
-          </div>
+          </Reveal>
 
           {loadingProducts ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -69,71 +70,71 @@ export default function Home() {
             </div>
           )}
 
-          <div className="mt-8 text-center">
+          <Reveal delay={180} className="mt-8 text-center">
             <button
               onClick={() => navigate('/catalogo')}
-              className="rounded-full border border-rose-200 bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50"
+              className="ui-button rounded-full border border-rose-200 bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
             >
               Ver catálogo completo
             </button>
-          </div>
+          </Reveal>
         </div>
-      </section>
+      </Reveal>
 
       <PromoBanner />
 
-      <footer className="border-t border-rose-100 bg-[#f7f4f9] px-4 py-12 sm:px-6 lg:px-8">
+      <Reveal as="footer" className="border-t border-rose-100 bg-[#f7f4f9] px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-4">
-          <div>
+          <Reveal delay={0}>
             <h3 className="text-lg font-semibold text-rose-600">ConectaDeco</h3>
             <p className="mt-3 text-sm font-normal leading-relaxed text-slate-500">
               Carcasas premium para iPhone con estilo floral y protección real para tu día a día.
             </p>
             <div className="mt-4 flex items-center gap-3 text-slate-500">
-              <a href="#" className="transition-colors hover:text-rose-500" aria-label="Instagram">
+              <a href="#" className="ui-button transition-colors hover:text-rose-500" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="transition-colors hover:text-rose-500" aria-label="Facebook">
+              <a href="#" className="ui-button transition-colors hover:text-rose-500" aria-label="Facebook">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="transition-colors hover:text-rose-500" aria-label="Twitter">
+              <a href="#" className="ui-button transition-colors hover:text-rose-500" aria-label="Twitter">
                 <Twitter size={18} />
               </a>
             </div>
-          </div>
+          </Reveal>
 
-          <div>
+          <Reveal delay={100}>
             <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-700">Tienda</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-rose-500">Nuevas colecciones</a></li>
-              <li><a href="#" className="hover:text-rose-500">Más vendidos</a></li>
-              <li><a href="#" className="hover:text-rose-500">Ofertas</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Nuevas colecciones</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Más vendidos</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Ofertas</a></li>
             </ul>
-          </div>
+          </Reveal>
 
-          <div>
+          <Reveal delay={200}>
             <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-700">Soporte</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-rose-500">Envíos y entregas</a></li>
-              <li><a href="#" className="hover:text-rose-500">Cambios y devoluciones</a></li>
-              <li><a href="#" className="hover:text-rose-500">Contacto</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Envíos y entregas</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Cambios y devoluciones</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Contacto</a></li>
             </ul>
-          </div>
+          </Reveal>
 
-          <div>
+          <Reveal delay={300}>
             <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-700">Legal</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-rose-500">Términos de servicio</a></li>
-              <li><a href="#" className="hover:text-rose-500">Privacidad</a></li>
-              <li><a href="#" className="hover:text-rose-500">Cookies</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Términos de servicio</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Privacidad</a></li>
+              <li><a href="#" className="ui-button hover:text-rose-500">Cookies</a></li>
             </ul>
-          </div>
+          </Reveal>
         </div>
 
         <div className="mx-auto mt-10 max-w-7xl border-t border-rose-100 pt-5 text-center text-xs text-slate-400">
           © 2026 ConectaDeco. Todos los derechos reservados.
         </div>
-      </footer>
+      </Reveal>
     </div>
   )
 }

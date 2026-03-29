@@ -2,6 +2,7 @@ import { ShoppingCart, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { useShop } from '../context/ShopContext'
+import Reveal from './motion/Reveal'
 
 export default function ProductCard({ producto }) {
   const navigate = useNavigate()
@@ -52,7 +53,10 @@ export default function ProductCard({ producto }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+    <Reveal
+      variant="card"
+      className="interactive-card group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+    >
       {/* Imagen */}
       <div
         className="relative h-48 bg-gray-50 cursor-pointer overflow-hidden"
@@ -77,7 +81,7 @@ export default function ProductCard({ producto }) {
             event.stopPropagation()
             handleToggleFavorite()
           }}
-          className={`absolute top-2 right-2 rounded-full p-1.5 shadow transition-all ${
+          className={`ui-button absolute top-2 right-2 rounded-full p-1.5 shadow ${
             favoritoActivo
               ? 'bg-rose-500 text-white opacity-100'
               : 'bg-white text-stone-500 hover:text-red-500 opacity-0 group-hover:opacity-100'
@@ -105,12 +109,12 @@ export default function ProductCard({ producto }) {
           <button
             disabled={stock === 0}
             onClick={handleAddToCart}
-            className="flex items-center gap-1.5 bg-red-600 text-white text-xs font-medium px-3 py-2 rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="ui-button flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ShoppingCart size={13} /> Agregar
           </button>
         </div>
       </div>
-    </div>
+    </Reveal>
   )
 }

@@ -5,10 +5,150 @@
 @tailwind utilities;
 
 @layer base {
-  html,
+  html {
+    scroll-behavior: smooth;
+    background:
+      radial-gradient(circle at top, rgba(251, 207, 232, 0.42), transparent 32%),
+      linear-gradient(180deg, #fffdfd 0%, #faf8fb 38%, #f8f3f8 100%);
+  }
+
   body,
   #root {
+    min-height: 100%;
     font-family: 'Poppins', sans-serif !important;
-    @apply font-sans;
+    @apply font-sans text-slate-800 antialiased;
+  }
+
+  body {
+    background: transparent;
+  }
+
+  button,
+  a,
+  input,
+  img {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .reveal {
+    opacity: 0;
+    will-change: transform, opacity, filter;
+    transition:
+      opacity var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      transform var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      filter var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+    backface-visibility: hidden;
+    transform: translate3d(0, 20px, 0);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .reveal-section {
+    filter: blur(0);
+  }
+
+  .reveal-card {
+    filter: blur(4px);
+    transform: translate3d(0, 24px, 0) scale(0.985);
+  }
+
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    transition:
+      opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--reveal-delay, 0ms) + var(--child-index, 0) * 90ms);
+    will-change: transform, opacity;
+  }
+
+  .reveal-stagger.is-visible > * {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .reveal-stagger > :nth-child(1) { --child-index: 0; }
+  .reveal-stagger > :nth-child(2) { --child-index: 1; }
+  .reveal-stagger > :nth-child(3) { --child-index: 2; }
+  .reveal-stagger > :nth-child(4) { --child-index: 3; }
+  .reveal-stagger > :nth-child(5) { --child-index: 4; }
+  .reveal-stagger > :nth-child(6) { --child-index: 5; }
+  .reveal-stagger > :nth-child(7) { --child-index: 6; }
+  .reveal-stagger > :nth-child(8) { --child-index: 7; }
+
+  .section-shell {
+    position: relative;
+  }
+
+  .section-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 72px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0));
+  }
+
+  .interactive-card {
+    transition:
+      transform 250ms ease,
+      box-shadow 250ms ease,
+      border-color 250ms ease,
+      background-color 250ms ease;
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
+  }
+
+  .interactive-card:hover {
+    transform: translate3d(0, -4px, 0) scale(1.02);
+    box-shadow: 0 28px 50px -28px rgba(15, 23, 42, 0.38);
+  }
+
+  .ui-button {
+    transition:
+      transform 250ms ease,
+      box-shadow 250ms ease,
+      background-color 250ms ease,
+      color 250ms ease,
+      border-color 250ms ease,
+      opacity 250ms ease,
+      filter 250ms ease;
+    will-change: transform, box-shadow;
+  }
+
+  .ui-button:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .ui-button:active {
+    transform: translate3d(0, 0, 0) scale(0.97);
+  }
+
+  .hero-parallax {
+    will-change: transform;
+    transition: transform 180ms linear;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal-stagger > *,
+  .interactive-card,
+  .ui-button,
+  .hero-parallax {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
   }
 }
