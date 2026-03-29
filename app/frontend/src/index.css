@@ -32,21 +32,73 @@
 }
 
 @layer components {
+  .hero-stage {
+    position: relative;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .hero-gradient {
+    background:
+      radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.32), transparent 18%),
+      radial-gradient(circle at 85% 22%, rgba(255, 255, 255, 0.18), transparent 20%),
+      linear-gradient(120deg, #fb7185 0%, #f472b6 45%, #d946ef 100%);
+    background-size: 140% 140%;
+    animation: hero-gradient-shift 14s ease-in-out infinite;
+  }
+
+  .hero-copy.reveal {
+    transform: translate3d(0, 30px, 0) scale(0.98);
+  }
+
+  .hero-image-reveal.reveal {
+    filter: blur(6px);
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+
+  .hero-float {
+    animation: hero-float 8s ease-in-out infinite;
+  }
+
+  .hero-float-delayed {
+    animation-delay: 1.6s;
+  }
+
+  .hero-cta-bounce.is-visible {
+    animation: hero-cta-bounce 0.72s cubic-bezier(0.22, 1, 0.36, 1) 320ms both;
+  }
+
+  .hero-button-glow:hover {
+    box-shadow:
+      0 18px 38px -22px rgba(136, 19, 55, 0.58),
+      0 0 0 8px rgba(255, 255, 255, 0.08);
+    transform: translate3d(0, -2px, 0) scale(1.05);
+  }
+
+  .hero-scroll-indicator {
+    animation: hero-scroll-pulse 1.8s ease-in-out infinite;
+  }
+
+  .hero-scroll-line {
+    animation: hero-scroll-line 1.8s ease-in-out infinite;
+    transform-origin: top;
+  }
+
   .reveal {
     opacity: 0;
     will-change: transform, opacity, filter;
     transition:
-      opacity var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
-      transform var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
-      filter var(--reveal-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+      opacity var(--reveal-duration, 860ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      transform var(--reveal-duration, 860ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      filter var(--reveal-duration, 860ms) cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
     backface-visibility: hidden;
-    transform: translate3d(0, 20px, 0);
+    transform: translate3d(0, 24px, 0) scale(0.985);
   }
 
   .reveal.is-visible {
     opacity: 1;
     filter: blur(0);
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 
   .reveal-section {
@@ -60,17 +112,17 @@
 
   .reveal-stagger > * {
     opacity: 0;
-    transform: translate3d(0, 16px, 0);
+    transform: translate3d(0, 24px, 0) scale(0.985);
     transition:
-      opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
-    transition-delay: calc(var(--reveal-delay, 0ms) + var(--child-index, 0) * 90ms);
+      opacity 760ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--reveal-delay, 0ms) + var(--child-index, 0) * 100ms);
     will-change: transform, opacity;
   }
 
   .reveal-stagger.is-visible > * {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 
   .reveal-stagger > :nth-child(1) { --child-index: 0; }
@@ -95,6 +147,18 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0));
   }
 
+  .section-shell::after {
+    content: '';
+    position: absolute;
+    inset: auto 8% -26px;
+    height: 110px;
+    pointer-events: none;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(244, 114, 182, 0.08), rgba(255, 255, 255, 0));
+    filter: blur(22px);
+    animation: section-float 9s ease-in-out infinite;
+  }
+
   .interactive-card {
     transition:
       transform 250ms ease,
@@ -106,8 +170,8 @@
   }
 
   .interactive-card:hover {
-    transform: translate3d(0, -4px, 0) scale(1.02);
-    box-shadow: 0 28px 50px -28px rgba(15, 23, 42, 0.38);
+    transform: translate3d(0, -4px, 0) scale(1.015);
+    box-shadow: 0 30px 54px -30px rgba(15, 23, 42, 0.34);
   }
 
   .ui-button {
@@ -123,16 +187,89 @@
   }
 
   .ui-button:hover {
-    transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -2px, 0) scale(1.02);
   }
 
   .ui-button:active {
-    transform: translate3d(0, 0, 0) scale(0.97);
+    transform: translate3d(0, 0, 0) scale(0.98);
   }
 
   .hero-parallax {
     will-change: transform;
-    transition: transform 180ms linear;
+    transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease;
+  }
+}
+
+@keyframes hero-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes hero-cta-bounce {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) scale(0.96);
+  }
+  62% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes hero-scroll-pulse {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+@keyframes hero-scroll-line {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleY(0.84);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1) translateY(6px);
+  }
+}
+
+@keyframes section-float {
+  0%,
+  100% {
+    transform: translate3d(0, 8px, 0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+    opacity: 1;
   }
 }
 
@@ -145,10 +282,17 @@
   .reveal-stagger > *,
   .interactive-card,
   .ui-button,
-  .hero-parallax {
+  .hero-parallax,
+  .hero-stage,
+  .hero-scroll-indicator,
+  .hero-scroll-line,
+  .hero-gradient,
+  .hero-float,
+  .hero-cta-bounce {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
     filter: none !important;
+    animation: none !important;
   }
 }

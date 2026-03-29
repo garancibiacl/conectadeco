@@ -44,9 +44,15 @@ export default function Home() {
 
       <FeaturedSection />
 
-      <Reveal as="section" className="section-shell px-4 py-12 sm:px-6 lg:px-8">
+      <Reveal
+        as="section"
+        threshold={0.18}
+        rootMargin="0px 0px -8% 0px"
+        duration={920}
+        className="section-shell px-4 py-12 sm:px-6 lg:px-8"
+      >
         <div className="mx-auto max-w-7xl">
-          <Reveal className="mb-8 text-center" stagger>
+          <Reveal className="mb-8 text-center" duration={860} stagger>
             <h2 className="text-3xl font-semibold text-slate-800">Top Carcasas</h2>
             <p className="mt-2 text-sm font-normal leading-relaxed text-slate-500">
               Diseños que están marcando tendencia esta semana.
@@ -70,7 +76,7 @@ export default function Home() {
             </div>
           )}
 
-          <Reveal delay={180} className="mt-8 text-center">
+          <Reveal delay={260} duration={860} className="mt-8 text-center">
             <button
               onClick={() => navigate('/catalogo')}
               className="ui-button rounded-full border border-rose-200 bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"

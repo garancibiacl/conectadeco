@@ -26,9 +26,15 @@ const categories = [
 
 export default function FeaturedSection() {
   return (
-    <Reveal as="section" className="section-shell px-4 py-12 sm:px-6 lg:px-8">
+    <Reveal
+      as="section"
+      threshold={0.18}
+      rootMargin="0px 0px -8% 0px"
+      duration={920}
+      className="section-shell px-4 py-12 sm:px-6 lg:px-8"
+    >
       <div className="mx-auto max-w-7xl">
-        <Reveal className="mb-7" duration={680} stagger>
+        <Reveal className="mb-7" duration={860} stagger>
           <h2 className="text-2xl font-semibold text-slate-800 sm:text-3xl">Colecciones Destacadas</h2>
           <p className="mt-2 text-sm font-normal leading-relaxed text-slate-500">
             Inspiración botánica para cada personalidad.
@@ -41,7 +47,8 @@ export default function FeaturedSection() {
               as="article"
               key={item.id}
               variant="card"
-              delay={index * 110}
+              duration={920}
+              delay={index * 140}
               className="interactive-card group relative overflow-hidden rounded-[1.4rem] bg-white shadow-[0_12px_28px_-22px_rgba(30,41,59,0.7)]"
             >
               <img
