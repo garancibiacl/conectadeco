@@ -19,25 +19,25 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO productos (nombre, descripcion, precio, stock, categoria, modelo, imagen_url)
 VALUES
   (
-    'Premium Silicone Case - Rojo Crimson',
+    'Premium Silicone Case - Negro Floral Crimson',
     'Funda premium de silicona con acabado suave y protección reforzada.',
-    29900, 16, 'iPhone 15', 'iPhone 15 Pro Max',
-    'https://res.cloudinary.com/dwfexginq/image/upload/v1773617625/tclp19gngfzlhowadmxx.png'
+    10900, 16, 'iPhone 15', 'iPhone 15 Pro Max',
+    'https://res.cloudinary.com/dwfexginq/image/upload/v1774317325/tled4z5lfa09eqge1kdw.png'
   ),
   (
-    'Crystal MagSafe Case',
+    'Funda trasera - Negro de Tulipanes',
     'Carcasa transparente con compatibilidad MagSafe y bordes anti impactos.',
-    34500, 12, 'iPhone 15', 'iPhone 15 Pro',
-    'https://images.unsplash.com/photo-1560693135-581d2e8c5e4f?auto=format&fit=crop&w=900&q=80'
+    12500, 12, 'iPhone 15', 'iPhone 15 Pro',
+    'https://res.cloudinary.com/dwfexginq/image/upload/v1774580963/kjrpe4gvt6zou2aug3w2.png'
   ),
   (
-    'Wild Roses Blush',
+    'Funda trasera - Negra Mariposa Dorada',
     'Diseño floral en tonos blush para uso diario.',
-    24990, 10, 'iPhone 14', 'iPhone 14 Pro',
-    'https://images.unsplash.com/photo-1551542159-1e0b48d387f6?auto=format&fit=crop&w=900&q=80'
+    12990, 10, 'iPhone 14', 'iPhone 14 Pro',
+    'https://res.cloudinary.com/dwfexginq/image/upload/v1774582221/keox4idvy8rsfl0adzt4.png'
   ),
   (
-    'Spring Blossom Case',
+    'Funda trasera - Blanca Print abstract',
     'Colección primavera con acabado mate premium.',
     22990, 18, 'iPhone 14', 'iPhone 14',
     'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?auto=format&fit=crop&w=900&q=80'
