@@ -59,7 +59,7 @@ export default function Carrito() {
     try {
       const payload = {
         items: items.map((item) => ({
-          product_id: item.id,
+          product_id: item.productoId,
           qty: item.cantidad,
         })),
       }
