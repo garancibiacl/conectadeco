@@ -43,14 +43,14 @@ VALUES
     'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?auto=format&fit=crop&w=900&q=80'
   ),
   (
-    'Midnight Orchid',
+    'Premium Silicone Case - Blanca Floral Crimson',
     'Edición premium con flores oscuras y protección lateral.',
     26990, 9, 'iPhone 13', 'iPhone 13 Pro',
     'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=80'
   ),
 
   (
-    'Golden Sunflower',
+    'Set Premium Silicone Case - Floral Crimson',
     'Diseño vibrante con patrón de girasoles.',
     24990, 14, 'iPhone 13', 'iPhone 13',
     'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80'
