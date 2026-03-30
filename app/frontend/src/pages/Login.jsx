@@ -40,13 +40,6 @@ export default function Login() {
           <p className="text-gray-500 text-sm mt-1">Bienvenida de vuelta a ConectaDeco</p>
         </div>
 
-        {/* Demo hint */}
-        <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-6 text-sm text-gray-600">
-          <p className="font-semibold text-red-700 mb-1">Cuenta demo admin:</p>
-          <p>Email: admin@conectadeco.com</p>
-          <p>Contraseña: admin123</p>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
