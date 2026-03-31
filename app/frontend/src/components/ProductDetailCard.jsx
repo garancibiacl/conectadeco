@@ -15,6 +15,22 @@ function buildGallery(producto) {
 }
 
 function buildColorOptions(producto) {
+  if (Array.isArray(producto.variantes) && producto.variantes.length > 0) {
+    return producto.variantes.map((variant, index) => ({
+      id: variant.id ?? `${variant.color || 'color'}-${index}`,
+      label: variant.color || `Color ${index + 1}`,
+      className: '',
+      colorHex: variant.colorHex || variant.color_hex || '#111827',
+      active: index === 0,
+      stock: variant.stock ?? producto.stock,
+      image: variant.imagen || variant.imagen_url || producto.imagen,
+      images:
+        Array.isArray(variant.imagenes) && variant.imagenes.length > 0
+          ? variant.imagenes
+          : [variant.imagen || variant.imagen_url || producto.imagen].filter(Boolean),
+    }))
+  }
+
   const baseOptions = [
     { id: 'rojo', label: 'Rojo coral', className: 'bg-[#ff6b6b]' },
     { id: 'azul', label: 'Azul noche', className: 'bg-[#19376d]' },
@@ -35,29 +51,9 @@ function buildColorOptions(producto) {
   return baseOptions.map((option) => ({ ...option, active: option.id === activeColor }))
 }
 
-function buildModelOptions(producto) {
-  const options = [producto.modelo, producto.categoria]
-    .filter(Boolean)
-    .map((label, index) => ({
-      id: `${label}-${index}`,
-      label,
-      active: index === 0,
-    }))
-
-  if (options.length === 1) {
-    options.push({
-      id: `${producto.categoria || 'catalogo'}-alt`,
-      label: producto.categoria === producto.modelo ? 'Otras versiones' : producto.categoria,
-      active: false,
-      disabled: true,
-    })
-  }
-
-  return options
-}
-
 export default function ProductDetailCard({
   producto,
+  modelOptions = [],
   loadingAction = false,
   favoriteActive = false,
   quantity = 1,
@@ -66,16 +62,37 @@ export default function ProductDetailCard({
   onAddToCart,
   onBuyNow,
   onToggleFavorite,
+  onSelectModel,
 }) {
-  const gallery = useMemo(() => buildGallery(producto), [producto])
   const colorOptions = useMemo(() => buildColorOptions(producto), [producto])
-  const modelOptions = useMemo(() => buildModelOptions(producto), [producto])
-  const [selectedImage, setSelectedImage] = useState(gallery[0]?.src || producto.imagen || '')
+  const [selectedColorId, setSelectedColorId] = useState(colorOptions[0]?.id || null)
+  const selectedColor =
+    colorOptions.find((option) => option.id === selectedColorId) || colorOptions[0] || null
+  const gallery = useMemo(() => {
+    if (selectedColor?.images?.length) {
+      return selectedColor.images.map((src, index) => ({
+        id: `${selectedColor.id}-image-${index}`,
+        src,
+        alt: `${producto.nombre} ${selectedColor.label} vista ${index + 1}`,
+        bg: index === 0 ? 'bg-white' : 'bg-[#f7f4ee]',
+      }))
+    }
+
+    return buildGallery(producto)
+  }, [producto, selectedColor])
+  const [selectedImage, setSelectedImage] = useState(
+    selectedColor?.image || gallery[0]?.src || producto.imagen || '',
+  )
   const previousPrice = Math.round(Number(producto.precio) * 1.35)
+  const effectiveStock = selectedColor?.stock ?? producto.stock
 
   useEffect(() => {
-    setSelectedImage(gallery[0]?.src || producto.imagen || '')
-  }, [gallery, producto.imagen])
+    setSelectedColorId(colorOptions[0]?.id || null)
+  }, [producto.id, colorOptions])
+
+  useEffect(() => {
+    setSelectedImage(selectedColor?.image || gallery[0]?.src || producto.imagen || '')
+  }, [gallery, producto.imagen, selectedColor])
 
   return (
     <section className="overflow-hidden rounded-[34px] border border-stone-100 bg-white shadow-[0_28px_80px_-50px_rgba(15,23,42,0.28)]">
@@ -172,13 +189,18 @@ export default function ProductDetailCard({
                   <button
                     key={option.id}
                     type="button"
+                    onClick={() => setSelectedColorId(option.id)}
                     className={`relative h-7 w-7 rounded-full border-2 transition-transform hover:scale-105 ${
-                      option.active ? 'border-stone-900' : 'border-transparent'
+                      option.id === selectedColor?.id ? 'border-stone-900' : 'border-transparent'
                     }`}
                     aria-label={option.label}
+                    aria-pressed={option.id === selectedColor?.id}
                   >
-                    <span className={`block h-full w-full rounded-full ${option.className}`} />
-                    {option.active && (
+                    <span
+                      className={`block h-full w-full rounded-full ${option.className}`}
+                      style={option.colorHex ? { backgroundColor: option.colorHex } : undefined}
+                    />
+                    {option.id === selectedColor?.id && (
                       <span className="absolute inset-0 flex items-center justify-center text-white">
                         <Check size={12} />
                       </span>
@@ -193,18 +215,32 @@ export default function ProductDetailCard({
                 Device model
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {modelOptions.map((option) => (
+                {(modelOptions.length > 0
+                  ? modelOptions
+                  : [{ id: producto.id, label: producto.modelo || producto.nombre, active: true, available: producto.stock > 0 }]
+                ).map((option) => (
                   <button
                     key={option.id}
                     type="button"
-                    disabled={option.disabled}
-                    className={`rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition-colors ${
+                    onClick={() => onSelectModel?.(option.id)}
+                    className={`group relative overflow-hidden rounded-[20px] border px-5 py-4 text-center text-sm font-semibold transition-all duration-300 ${
                       option.active
-                        ? 'border-red-500 bg-red-50 text-red-500'
-                        : 'border-stone-200 bg-white text-stone-400 hover:border-stone-300 hover:text-stone-600'
-                    } disabled:cursor-not-allowed disabled:opacity-70`}
+                        ? 'border-red-400 bg-red-50/80 text-red-500 shadow-[0_18px_35px_-28px_rgba(239,68,68,0.45)]'
+                        : 'border-stone-200 bg-white text-stone-400 hover:border-stone-300 hover:text-stone-600 hover:shadow-[0_16px_32px_-28px_rgba(15,23,42,0.28)]'
+                    }`}
+                    aria-pressed={option.active}
                   >
-                    {option.label}
+                    <span
+                      className={`pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 ${
+                        option.active ? 'bg-[radial-gradient(circle_at_top,rgba(248,113,113,0.12),transparent_68%)] opacity-100' : 'group-hover:opacity-100 bg-[radial-gradient(circle_at_top,rgba(231,229,228,0.55),transparent_70%)]'
+                      }`}
+                    />
+                    <span className="relative block">{option.label}</span>
+                    {!option.available && (
+                      <span className="relative mt-1 block text-[11px] font-medium tracking-[0.12em] text-stone-400">
+                        Sin stock
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -228,8 +264,8 @@ export default function ProductDetailCard({
                 </span>
                 <button
                   type="button"
-                  onClick={onIncreaseQuantity}
-                  disabled={loadingAction || producto.stock === 0 || quantity >= producto.stock}
+                  onClick={() => onIncreaseQuantity?.(effectiveStock)}
+                  disabled={loadingAction || effectiveStock === 0 || quantity >= effectiveStock}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg font-semibold text-stone-500 transition-colors hover:bg-white hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-35"
                   aria-label="Aumentar cantidad"
                 >
@@ -239,8 +275,8 @@ export default function ProductDetailCard({
 
               <button
                 type="button"
-                disabled={producto.stock === 0 || loadingAction}
-                onClick={onAddToCart}
+                disabled={effectiveStock === 0 || loadingAction}
+                onClick={() => onAddToCart?.(selectedColor)}
                 className="inline-flex min-h-14 flex-1 items-center justify-center gap-2 rounded-[20px] bg-red-500 px-6 text-base font-semibold text-white shadow-[0_20px_40px_-20px_rgba(239,68,68,0.65)] transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ShoppingCart size={18} />
@@ -263,8 +299,8 @@ export default function ProductDetailCard({
 
             <button
               type="button"
-              disabled={producto.stock === 0 || loadingAction}
-              onClick={onBuyNow}
+              disabled={effectiveStock === 0 || loadingAction}
+              onClick={() => onBuyNow?.(selectedColor)}
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-[20px] border border-stone-200 bg-white px-6 text-sm font-semibold text-stone-700 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.35)] transition-colors hover:border-stone-300 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Comprar ahora
@@ -272,9 +308,9 @@ export default function ProductDetailCard({
           </div>
 
           <div className="mt-4 inline-flex w-fit items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600">
-            <span className={`h-2.5 w-2.5 rounded-full ${producto.stock > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`} />
-            {producto.stock > 0
-              ? `${producto.stock} disponible${producto.stock > 1 ? 's' : ''} en stock`
+            <span className={`h-2.5 w-2.5 rounded-full ${effectiveStock > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+            {effectiveStock > 0
+              ? `${effectiveStock} disponible${effectiveStock > 1 ? 's' : ''} en stock`
               : 'Sin stock disponible'}
           </div>
 

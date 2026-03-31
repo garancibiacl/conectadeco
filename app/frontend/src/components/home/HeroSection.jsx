@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Reveal from '../motion/Reveal'
+import HeroPhoneMockup from './HeroPhoneMockup'
 
 const heroImage =
   'https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&w=900&q=80'
@@ -51,7 +52,6 @@ export default function HeroSection() {
   }, [])
 
   const heroTranslate = scrollProgress * -40
-  const imageTranslate = scrollProgress * 30
   const textTranslate = scrollProgress * -14
   const textOpacity = 1 - scrollProgress * 0.15
   const glowTranslate = scrollProgress * 18
@@ -132,25 +132,14 @@ export default function HeroSection() {
           <Reveal
             trigger="load"
             delay={180}
-            duration={900}
-            className="relative z-10 mx-auto w-full max-w-[460px] hero-image-reveal"
+            duration={980}
+            className="relative z-10 mx-auto w-full max-w-[460px] hero-image-reveal hero-phone-entry"
           >
-            <div
-              className="hero-parallax relative rounded-[1.75rem] bg-white/25 p-3 backdrop-blur-sm sm:p-4"
-              style={{ transform: `translate3d(0, ${imageTranslate}px, 0)` }}
-            >
-              <div className="overflow-hidden rounded-[1.4rem] bg-white p-4 shadow-[0_20px_30px_-20px_rgba(0,0,0,0.45)] sm:p-5">
-                <img
-                  src={heroImage}
-                  alt="Carcasa floral para iPhone"
-                  className="h-[280px] w-full rounded-2xl object-cover object-center transition-transform duration-700 ease-out hover:scale-[1.03] sm:h-[340px]"
-                />
-              </div>
-              <div className="absolute -bottom-4 left-1/2 w-[88%] -translate-x-1/2 rounded-2xl bg-white/90 px-4 py-3 shadow-lg shadow-rose-900/10 backdrop-blur">
-                <p className="text-xs font-semibold text-rose-600">ConectaDeco Edition</p>
-                <p className="text-xs text-slate-500">Ultra resistente, ligera y elegante.</p>
-              </div>
-            </div>
+            <HeroPhoneMockup
+              imageSrc={heroImage}
+              imageAlt="Carcasa floral para iPhone"
+              scrollProgress={scrollProgress}
+            />
           </Reveal>
         </div>
 

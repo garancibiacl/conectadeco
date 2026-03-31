@@ -7,6 +7,38 @@ import { useAuth } from '../context/AuthContext'
 import { useShop } from '../context/ShopContext'
 import api from '../services/api'
 
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+function getProductFamily(producto, products) {
+  if (!producto) return []
+
+  const productCategory = normalizeText(producto.categoria)
+  const family = products.filter(
+    (item) => normalizeText(item.categoria) === productCategory,
+  )
+
+  return family
+    .filter((item, index, items) => items.findIndex((entry) => entry.id === item.id) === index)
+    .sort((a, b) => String(a.modelo || a.nombre).localeCompare(String(b.modelo || b.nombre), 'es'))
+}
+
+function buildModelOptions(producto, family) {
+  const source = family.length > 0 ? family : [producto]
+
+  return source.map((item) => ({
+    id: item.id,
+    label: item.modelo || item.nombre,
+    active: item.id === producto.id,
+    available: item.stock > 0,
+  }))
+}
+
 function RelatedProductCard({ producto }) {
   return (
     <Link
@@ -47,6 +79,7 @@ export default function ProductDetail() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const [availableModels, setAvailableModels] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -74,15 +107,32 @@ export default function ProductDetail() {
 
     fetchProducto()
 
-    api.get('/productos?limit=5')
+    api.get('/productos')
       .then(({ data }) => {
         if (!cancelled) {
           const items = data.productos || []
-          setRelatedProducts(items.filter((item) => item.id !== Number(id)).slice(0, 4))
+          const currentProductId = Number(id)
+          const currentProduct =
+            items.find((item) => item.id === currentProductId) || null
+          const family = getProductFamily(currentProduct, items)
+
+          if (currentProduct) {
+            setAvailableModels(buildModelOptions(currentProduct, family))
+          } else {
+            setAvailableModels([])
+          }
+
+          const familyIds = new Set(family.map((item) => item.id))
+          setRelatedProducts(
+            items
+              .filter((item) => item.id !== currentProductId && !familyIds.has(item.id))
+              .slice(0, 4),
+          )
         }
       })
       .catch(() => {
         if (!cancelled) {
+          setAvailableModels([])
           setRelatedProducts([])
         }
       })
@@ -92,8 +142,21 @@ export default function ProductDetail() {
     }
   }, [id])
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (selectedVariant) => {
     if (!producto) return
+
+    const availableStock = selectedVariant?.stock ?? producto.stock
+    const variantLabel = selectedVariant?.color ? ` (${selectedVariant.color})` : ''
+
+    if (quantity > availableStock) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Stock insuficiente',
+        text: 'La variante seleccionada no tiene suficiente stock.',
+        confirmButtonColor: '#dc2626',
+      })
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -126,7 +189,7 @@ export default function ProductDetail() {
       await Swal.fire({
         icon: 'success',
         title: 'Producto agregado',
-        text: `${producto.nombre} se agregó a tu carrito.`,
+        text: `${producto.nombre}${variantLabel} se agregó a tu carrito.`,
         confirmButtonColor: '#dc2626',
       })
     } catch (err) {
@@ -146,8 +209,20 @@ export default function ProductDetail() {
     }
   }
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = async (selectedVariant) => {
     if (!producto) return
+
+    const availableStock = selectedVariant?.stock ?? producto.stock
+
+    if (quantity > availableStock) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Stock insuficiente',
+        text: 'La variante seleccionada no tiene suficiente stock.',
+        confirmButtonColor: '#dc2626',
+      })
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -242,9 +317,14 @@ export default function ProductDetail() {
     setQuantity((current) => Math.max(1, current - 1))
   }
 
-  const handleIncreaseQuantity = () => {
+  const handleIncreaseQuantity = (maxStock = producto?.stock ?? 0) => {
     if (!producto) return
-    setQuantity((current) => Math.min(producto.stock, current + 1))
+    setQuantity((current) => Math.min(maxStock, current + 1))
+  }
+
+  const handleSelectModel = (productId) => {
+    if (!productId || productId === producto?.id) return
+    navigate(`/producto/${productId}`)
   }
 
   if (loading) {
@@ -308,6 +388,7 @@ export default function ProductDetail() {
 
         <ProductDetailCard
           producto={producto}
+          modelOptions={availableModels}
           loadingAction={submitting}
           favoriteActive={isFavorite(producto.id)}
           quantity={quantity}
@@ -316,6 +397,7 @@ export default function ProductDetail() {
           onAddToCart={handleAddToCart}
           onBuyNow={handleBuyNow}
           onToggleFavorite={handleToggleFavorite}
+          onSelectModel={handleSelectModel}
         />
 
         <section className="mt-14">

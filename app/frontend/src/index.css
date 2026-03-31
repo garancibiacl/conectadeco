@@ -39,12 +39,47 @@
   }
 
   .hero-gradient {
+    isolation: isolate;
     background:
       radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.32), transparent 18%),
       radial-gradient(circle at 85% 22%, rgba(255, 255, 255, 0.18), transparent 20%),
       linear-gradient(120deg, #fb7185 0%, #f472b6 45%, #d946ef 100%);
-    background-size: 140% 140%;
-    animation: hero-gradient-shift 14s ease-in-out infinite;
+    background-size: 200% 200%;
+    animation: hero-gradient-shift 12s ease-in-out infinite;
+  }
+
+  .hero-gradient::before,
+  .hero-gradient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .hero-gradient::before {
+    inset: 12% 18% auto;
+    height: 58%;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 70%),
+      radial-gradient(circle at 50% 65%, rgba(251, 191, 208, 0.18), rgba(251, 191, 208, 0) 72%);
+    filter: blur(30px);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+    transform: translate3d(0, 0, 0) scale(0.96);
+    animation: hero-glow-drift 12s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+    will-change: transform, opacity;
+  }
+
+  .hero-gradient::after {
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.08) 0.7px, transparent 0.7px),
+      radial-gradient(rgba(255, 255, 255, 0.04) 0.6px, transparent 0.6px);
+    background-position: 0 0, 14px 16px;
+    background-size: 22px 22px, 26px 26px;
+    opacity: 0.08;
+    mix-blend-mode: soft-light;
   }
 
   .hero-copy.reveal {
@@ -54,6 +89,113 @@
   .hero-image-reveal.reveal {
     filter: blur(6px);
     transform: translate3d(0, 0, 0) scale(0.95);
+  }
+
+  .hero-phone-entry.reveal {
+    filter: blur(10px);
+    transform: translate3d(0, 40px, 0) scale(0.95);
+  }
+
+  .hero-phone-shell {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .hero-phone-float {
+    animation: hero-phone-float 6.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  }
+
+  .hero-phone-card {
+    position: relative;
+    transform:
+      translate3d(0, calc(var(--phone-scroll-translate, 0px) * -1), 0)
+      rotateX(var(--phone-rotate-x, 0deg))
+      rotateY(var(--phone-rotate-y, 0deg))
+      scale(1);
+    transform-style: preserve-3d;
+    transition:
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, box-shadow;
+    box-shadow:
+      0 24px 48px -30px rgba(148, 163, 184, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  .hero-phone-card[data-hovering='true'] {
+    transform:
+      translate3d(0, calc(var(--phone-scroll-translate, 0px) * -1), 0)
+      rotateX(var(--phone-rotate-x, 0deg))
+      rotateY(var(--phone-rotate-y, 0deg))
+      scale(1.03);
+    box-shadow:
+      0 38px 72px -34px rgba(15, 23, 42, 0.34),
+      0 0 0 1px rgba(255, 255, 255, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  }
+
+  .hero-phone-device {
+    transform: translateZ(0);
+    transition:
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, box-shadow;
+  }
+
+  .hero-phone-card[data-hovering='true'] .hero-phone-device {
+    transform: translate3d(0, -2px, 30px);
+    box-shadow: 0 34px 68px -34px rgba(15, 23, 42, 0.32);
+  }
+
+  .hero-phone-image {
+    will-change: transform;
+    transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform: scale(1.01);
+  }
+
+  .hero-phone-card[data-hovering='true'] .hero-phone-image {
+    transform: scale(1.035);
+  }
+
+  .hero-phone-glow {
+    background:
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0) 68%),
+      radial-gradient(circle at 50% 90%, rgba(251, 113, 133, 0.2), rgba(251, 113, 133, 0) 72%);
+    filter: blur(18px);
+    opacity: 0.82;
+    transform: translateZ(-20px);
+    transition:
+      opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hero-phone-shell:hover .hero-phone-glow {
+    opacity: 1;
+    transform: translate3d(0, -8px, -10px) scale(1.04);
+  }
+
+  .hero-phone-orbit {
+    animation: hero-orbit-float 8.5s ease-in-out infinite;
+  }
+
+  .hero-phone-orbit-delayed {
+    animation-delay: 1.8s;
+  }
+
+  .hero-phone-badge {
+    box-shadow:
+      0 18px 44px -28px rgba(15, 23, 42, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translate3d(-50%, 0, 38px);
+    will-change: transform;
+    transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hero-phone-card[data-hovering='true'] .hero-phone-badge {
+    transform: translate3d(-50%, -2px, 52px);
+    box-shadow: 0 22px 54px -28px rgba(15, 23, 42, 0.28);
   }
 
   .hero-float {
@@ -203,12 +345,35 @@
 @keyframes hero-gradient-shift {
   0% {
     background-position: 0% 50%;
+    filter: brightness(0.98) saturate(0.98);
+  }
+  30% {
+    background-position: 42% 38%;
+    filter: brightness(1.01) saturate(1);
   }
   50% {
     background-position: 100% 50%;
+    filter: brightness(1.03) saturate(1.02);
+  }
+  72% {
+    background-position: 64% 72%;
+    filter: brightness(1.01) saturate(1);
   }
   100% {
     background-position: 0% 50%;
+    filter: brightness(0.98) saturate(0.98);
+  }
+}
+
+@keyframes hero-glow-drift {
+  0%,
+  100% {
+    opacity: 0.56;
+    transform: translate3d(-3%, 0, 0) scale(0.94);
+  }
+  50% {
+    opacity: 0.84;
+    transform: translate3d(3%, -2%, 0) scale(1.02);
   }
 }
 
@@ -219,6 +384,28 @@
   }
   50% {
     transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes hero-phone-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes hero-orbit-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.78;
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+    opacity: 1;
   }
 }
 
@@ -288,7 +475,9 @@
   .hero-scroll-line,
   .hero-gradient,
   .hero-float,
-  .hero-cta-bounce {
+  .hero-cta-bounce,
+  .hero-phone-float,
+  .hero-phone-orbit {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;

@@ -14,6 +14,17 @@ function mapProducto(row) {
   };
 }
 
+function mapProductoVariante(row) {
+  return {
+    id: row.id,
+    color: row.color,
+    colorHex: row.color_hex,
+    stock: row.stock,
+    imagen: row.imagen_url,
+    imagenes: Array.isArray(row.imagenes) ? row.imagenes : [],
+  };
+}
+
 function buildFilters({ categoria, q, model, modelo }) {
   const where = [];
   const values = [];
@@ -79,7 +90,19 @@ async function getProductoById(id) {
     throw new AppError('Producto no encontrado.', 404);
   }
 
-  return mapProducto(result.rows[0]);
+  const producto = mapProducto(result.rows[0]);
+
+  const variantesResult = await query(
+    `SELECT id, color, color_hex, stock, imagen_url, imagenes
+     FROM producto_variantes
+     WHERE producto_id = $1
+     ORDER BY id ASC`,
+    [id]
+  );
+
+  producto.variantes = variantesResult.rows.map(mapProductoVariante);
+
+  return producto;
 }
 
 module.exports = {
