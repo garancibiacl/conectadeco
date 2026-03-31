@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import PrivateRoute from '../components/PrivateRoute'
+import WhatsAppButton from '../components/WhatsAppButton'
 import Home from '../pages/Home'
 import Catalogo from '../pages/Catalogo'
 import Login from '../pages/Login'
@@ -78,6 +79,7 @@ export default function AppRouter() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <WhatsAppButton />
     </>
   )
 }
