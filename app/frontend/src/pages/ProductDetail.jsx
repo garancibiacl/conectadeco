@@ -46,6 +46,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [quantity, setQuantity] = useState(1)
 
   useEffect(() => {
     let cancelled = false
@@ -58,6 +59,7 @@ export default function ProductDetail() {
         const { data } = await api.get(`/productos/${id}`)
         if (!cancelled) {
           setProducto(data)
+          setQuantity(1)
         }
       } catch (err) {
         if (!cancelled) {
@@ -120,7 +122,7 @@ export default function ProductDetail() {
         }
       }
 
-      await addToCart(producto.id, 1)
+      await addToCart(producto.id, quantity)
       await Swal.fire({
         icon: 'success',
         title: 'Producto agregado',
@@ -174,7 +176,7 @@ export default function ProductDetail() {
         }
       }
 
-      await addToCart(producto.id, 1)
+      await addToCart(producto.id, quantity)
       navigate('/carrito')
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
@@ -197,7 +199,16 @@ export default function ProductDetail() {
     if (!producto) return
 
     try {
+      const wasFavorite = isFavorite(producto.id)
       await toggleFavorite(producto.id)
+      await Swal.fire({
+        icon: 'success',
+        title: wasFavorite ? 'Eliminado de favoritos' : 'Guardado en favoritos',
+        text: wasFavorite
+          ? `${producto.nombre} se quitó de tu lista.`
+          : `${producto.nombre} quedó guardado para revisarlo después.`,
+        confirmButtonColor: '#dc2626',
+      })
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
         const result = await Swal.fire({
@@ -225,6 +236,15 @@ export default function ProductDetail() {
         confirmButtonColor: '#dc2626',
       })
     }
+  }
+
+  const handleDecreaseQuantity = () => {
+    setQuantity((current) => Math.max(1, current - 1))
+  }
+
+  const handleIncreaseQuantity = () => {
+    if (!producto) return
+    setQuantity((current) => Math.min(producto.stock, current + 1))
   }
 
   if (loading) {
@@ -290,6 +310,9 @@ export default function ProductDetail() {
           producto={producto}
           loadingAction={submitting}
           favoriteActive={isFavorite(producto.id)}
+          quantity={quantity}
+          onDecreaseQuantity={handleDecreaseQuantity}
+          onIncreaseQuantity={handleIncreaseQuantity}
           onAddToCart={handleAddToCart}
           onBuyNow={handleBuyNow}
           onToggleFavorite={handleToggleFavorite}

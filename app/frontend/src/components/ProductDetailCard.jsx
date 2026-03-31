@@ -60,6 +60,9 @@ export default function ProductDetailCard({
   producto,
   loadingAction = false,
   favoriteActive = false,
+  quantity = 1,
+  onDecreaseQuantity,
+  onIncreaseQuantity,
   onAddToCart,
   onBuyNow,
   onToggleFavorite,
@@ -208,24 +211,71 @@ export default function ProductDetailCard({
             </div>
           </div>
 
-          <div className="mt-9 grid gap-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-            <button
-              type="button"
-              disabled={producto.stock === 0 || loadingAction}
-              onClick={onAddToCart}
-              className="inline-flex min-h-16 items-center justify-center gap-2 rounded-[22px] border border-stone-200 bg-white px-5 text-sm font-semibold text-stone-700 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.35)] transition-colors hover:border-stone-300 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <ShoppingCart size={17} />
-              {loadingAction ? 'Agregando...' : 'Agregar al carrito'}
-            </button>
+          <div className="mt-9 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex h-14 items-center rounded-[18px] bg-stone-100 px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                <button
+                  type="button"
+                  onClick={onDecreaseQuantity}
+                  disabled={quantity <= 1 || loadingAction || producto.stock === 0}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg font-semibold text-stone-500 transition-colors hover:bg-white hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-35"
+                  aria-label="Disminuir cantidad"
+                >
+                  -
+                </button>
+                <span className="inline-flex min-w-10 items-center justify-center px-2 text-base font-semibold text-stone-900">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={onIncreaseQuantity}
+                  disabled={loadingAction || producto.stock === 0 || quantity >= producto.stock}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg font-semibold text-stone-500 transition-colors hover:bg-white hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-35"
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
+              </div>
+
+              <button
+                type="button"
+                disabled={producto.stock === 0 || loadingAction}
+                onClick={onAddToCart}
+                className="inline-flex min-h-14 flex-1 items-center justify-center gap-2 rounded-[20px] bg-red-500 px-6 text-base font-semibold text-white shadow-[0_20px_40px_-20px_rgba(239,68,68,0.65)] transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ShoppingCart size={18} />
+                {loadingAction ? 'Agregando...' : 'Agregar al carro'}
+              </button>
+
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                aria-label={favoriteActive ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+                className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors ${
+                  favoriteActive
+                    ? 'border-rose-500 bg-rose-500 text-white'
+                    : 'border-stone-200 bg-white text-stone-500 hover:border-rose-200 hover:text-rose-500'
+                }`}
+              >
+                <Heart size={20} className={favoriteActive ? 'fill-current' : ''} />
+              </button>
+            </div>
+
             <button
               type="button"
               disabled={producto.stock === 0 || loadingAction}
               onClick={onBuyNow}
-              className="inline-flex min-h-16 items-center justify-center gap-2 rounded-[22px] bg-red-500 px-6 text-sm font-semibold text-white shadow-[0_20px_40px_-20px_rgba(239,68,68,0.65)] transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-[20px] border border-stone-200 bg-white px-6 text-sm font-semibold text-stone-700 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.35)] transition-colors hover:border-stone-300 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Comprar ahora
             </button>
+          </div>
+
+          <div className="mt-4 inline-flex w-fit items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600">
+            <span className={`h-2.5 w-2.5 rounded-full ${producto.stock > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+            {producto.stock > 0
+              ? `${producto.stock} disponible${producto.stock > 1 ? 's' : ''} en stock`
+              : 'Sin stock disponible'}
           </div>
 
           <div className="mt-8 grid gap-4 border-t border-stone-100 pt-6 sm:grid-cols-2">
