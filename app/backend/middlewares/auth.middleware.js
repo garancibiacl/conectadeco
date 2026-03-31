@@ -23,4 +23,25 @@ async function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth };
+async function optionalAuth(req, res, next) {
+  const header = req.headers.authorization;
+
+  if (!header || !header.startsWith('Bearer ')) {
+    req.user = null;
+    return next();
+  }
+
+  const token = header.slice(7);
+
+  try {
+    const payload = jwt.verify(token, env.jwtSecret);
+    const user = await authService.getUserById(Number(payload.sub));
+    req.user = user;
+    return next();
+  } catch (error) {
+    req.user = null;
+    return next();
+  }
+}
+
+module.exports = { requireAuth, optionalAuth };

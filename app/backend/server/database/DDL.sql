@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS categorias (
 -- 4. Pedidos → depende de usuarios
 CREATE TABLE IF NOT EXISTS pedidos (
   id         SERIAL         PRIMARY KEY,
-  usuario_id INTEGER        NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  usuario_id INTEGER        REFERENCES usuarios(id) ON DELETE SET NULL,
   total      NUMERIC(10, 2) NOT NULL CHECK (total >= 0),
   estado     VARCHAR(40)    NOT NULL DEFAULT 'pendiente',
   created_at TIMESTAMP      NOT NULL DEFAULT NOW()

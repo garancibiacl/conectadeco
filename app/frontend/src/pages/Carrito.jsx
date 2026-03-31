@@ -43,17 +43,6 @@ export default function Carrito() {
   }
 
   const handleCompra = async () => {
-    if (!session) {
-      await Swal.fire({
-        icon: 'info',
-        title: 'Inicia sesión para comprar',
-        text: 'Debes autenticarte antes de confirmar un pedido.',
-        confirmButtonColor: '#dc2626',
-      })
-      navigate('/login')
-      return
-    }
-
     setProcesando(true)
 
     try {
@@ -155,6 +144,11 @@ export default function Carrito() {
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm sticky top-20">
             <h2 className="font-semibold text-gray-900 mb-4">Resumen total</h2>
             <div className="space-y-2 text-sm mb-4">
+              {!session && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-left text-xs leading-5 text-emerald-800">
+                  Estás comprando como invitado. Puedes finalizar ahora o crear una cuenta más tarde para futuras compras.
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span>${subtotal.toLocaleString('es-CL')}</span>
@@ -173,8 +167,16 @@ export default function Carrito() {
               disabled={procesando}
               className="w-full bg-red-600 text-white py-3 rounded-xl font-medium hover:bg-red-700 transition-colors"
             >
-              {procesando ? 'Procesando...' : 'Procesar compra'}
+              {procesando ? 'Procesando...' : session ? 'Procesar compra' : 'Comprar como invitado'}
             </button>
+            {!session && (
+              <button
+                onClick={() => navigate('/registro')}
+                className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-red-200 hover:text-red-600"
+              >
+                Crear cuenta y guardar historial
+              </button>
+            )}
           </div>
         </div>
       </div>

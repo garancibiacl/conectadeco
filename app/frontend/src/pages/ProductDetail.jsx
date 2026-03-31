@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import ProductDetailCard from '../components/ProductDetailCard'
+import { useAuth } from '../context/AuthContext'
 import { useShop } from '../context/ShopContext'
 import api from '../services/api'
 
@@ -38,6 +39,7 @@ function RelatedProductCard({ producto }) {
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { session } = useAuth()
   const { addToCart, toggleFavorite, isFavorite } = useShop()
   const [producto, setProducto] = useState(null)
   const [relatedProducts, setRelatedProducts] = useState([])
@@ -93,6 +95,31 @@ export default function ProductDetail() {
 
     setSubmitting(true)
     try {
+      if (!session) {
+        const result = await Swal.fire({
+          icon: 'question',
+          title: 'Compra rápida o crea tu cuenta',
+          text: 'Puedes seguir como invitado o registrarte para guardar tu carrito e historial.',
+          confirmButtonText: 'Crear cuenta',
+          denyButtonText: 'Continuar como invitado',
+          showDenyButton: true,
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#dc2626',
+          denyButtonColor: '#1f2937',
+          cancelButtonColor: '#d6d3d1',
+        })
+
+        if (result.isConfirmed) {
+          navigate('/registro')
+          return
+        }
+
+        if (!result.isDenied) {
+          return
+        }
+      }
+
       await addToCart(producto.id, 1)
       await Swal.fire({
         icon: 'success',
@@ -122,6 +149,31 @@ export default function ProductDetail() {
 
     setSubmitting(true)
     try {
+      if (!session) {
+        const result = await Swal.fire({
+          icon: 'question',
+          title: 'Comprar sin registro',
+          text: 'Puedes continuar como invitado o crear tu cuenta para guardar tu historial.',
+          confirmButtonText: 'Crear cuenta',
+          denyButtonText: 'Seguir como invitado',
+          showDenyButton: true,
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#dc2626',
+          denyButtonColor: '#1f2937',
+          cancelButtonColor: '#d6d3d1',
+        })
+
+        if (result.isConfirmed) {
+          navigate('/registro')
+          return
+        }
+
+        if (!result.isDenied) {
+          return
+        }
+      }
+
       await addToCart(producto.id, 1)
       navigate('/carrito')
     } catch (err) {
@@ -148,7 +200,21 @@ export default function ProductDetail() {
       await toggleFavorite(producto.id)
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
-        navigate('/login')
+        const result = await Swal.fire({
+          icon: 'info',
+          title: 'Crea tu cuenta para guardar favoritos',
+          text: 'Regístrate o inicia sesión para guardar productos y revisarlos después.',
+          confirmButtonText: 'Registrarme',
+          showCancelButton: true,
+          cancelButtonText: 'Más tarde',
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#d6d3d1',
+        })
+
+        if (result.isConfirmed) {
+          navigate('/registro')
+        }
+
         return
       }
 

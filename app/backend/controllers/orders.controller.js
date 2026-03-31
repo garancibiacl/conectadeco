@@ -8,7 +8,7 @@ async function createOrder(req, res) {
     throw new AppError('Debes enviar al menos un item para crear el pedido.', 400);
   }
 
-  const pedido = await ordersService.createOrder(req.user.id, { items });
+  const pedido = await ordersService.createOrder(req.user?.id || null, { items });
   res.status(201).json({ pedido });
 }
 

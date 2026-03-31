@@ -25,13 +25,46 @@ describe('Orders routes', () => {
     jest.clearAllMocks();
   });
 
-  test('POST /api/orders requiere autenticación', async () => {
+  test('POST /api/orders crea un pedido invitado sin autenticación', async () => {
+    const client = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({
+          rows: [
+            { id: 1, nombre: 'Funda A', precio: 29900, stock: 4 },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            { id: 23, total: 29900, estado: 'procesando', created_at: '2026-03-11T00:00:00.000Z' },
+          ],
+        })
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({}),
+      release: jest.fn(),
+    };
+
+    pool.connect.mockResolvedValueOnce(client);
+
     const response = await request(app)
       .post('/api/orders')
       .send({ items: [{ product_id: 1, qty: 1 }] });
 
-    expect(response.status).toBe(401);
-    expect(response.body.message).toBe('Token Bearer requerido.');
+    expect(response.status).toBe(201);
+    expect(response.body.pedido).toEqual(
+      expect.objectContaining({
+        id: 23,
+        total: 29900,
+        estado: 'procesando',
+      })
+    );
+    expect(client.query).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('INSERT INTO pedidos'),
+      [null, 29900]
+    );
   });
 
   test('POST /api/orders crea un pedido autenticado', async () => {
@@ -130,5 +163,12 @@ describe('Orders routes', () => {
         estado: 'procesando',
       })
     );
+  });
+
+  test('GET /api/orders/me requiere autenticación', async () => {
+    const response = await request(app).get('/api/orders/me');
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe('Token Bearer requerido.');
   });
 });
