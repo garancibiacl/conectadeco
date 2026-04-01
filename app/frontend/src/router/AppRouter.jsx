@@ -71,7 +71,10 @@ export default function AppRouter() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <>
+                <Navbar />
+                <Dashboard />
+              </>
             </PrivateRoute>
           }
         />

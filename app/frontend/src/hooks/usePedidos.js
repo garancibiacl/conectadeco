@@ -10,7 +10,7 @@ export function usePedidos() {
   useEffect(() => {
     api.get('/orders/me')
       .then(({ data }) => {
-        setPedidos(data.orders || [])
+        setPedidos(data.pedidos || [])
         setTotal(data.total || 0)
       })
       .catch(() => setError('No se pudieron cargar los pedidos.'))

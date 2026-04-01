@@ -73,6 +73,7 @@ function setCartVariant(productId, variant) {
     label: variant.label || null,
     color: variant.color || null,
     img: variant.img || variant.image || null,
+    modelLabel: variant.modelLabel || null,
   }
   writeCartVariants(variants)
 }
@@ -132,6 +133,7 @@ function mapGuestCartItemWithVariant(producto, cantidad, variant) {
       label: variant.label || null,
       color: variant.color || null,
       img: variant.img || variant.image || null,
+      modelLabel: variant.modelLabel || null,
     },
   })
 }
@@ -298,6 +300,7 @@ export function ShopProvider({ children }) {
               label: selectedVariant.label || null,
               color: selectedVariant.color || null,
               img: selectedVariant.img || selectedVariant.image || null,
+              modelLabel: selectedVariant.modelLabel || null,
             },
           })
         : data.item

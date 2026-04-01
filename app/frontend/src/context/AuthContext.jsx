@@ -10,20 +10,37 @@ export function AuthProvider({ children }) {
   )
   const navigate = useNavigate()
 
+  const persistSession = (nextSession) => {
+    localStorage.setItem('session', JSON.stringify(nextSession))
+    setSession(nextSession)
+  }
+
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password })
     const s = { token: data.token, user: data.user }
-    localStorage.setItem('session', JSON.stringify(s))
-    setSession(s)
+    persistSession(s)
     navigate('/dashboard')
   }
 
   const registro = async (nombre, email, password) => {
     const { data } = await api.post('/auth/register', { nombre, email, password })
     const s = { token: data.token, user: data.user }
-    localStorage.setItem('session', JSON.stringify(s))
-    setSession(s)
+    persistSession(s)
     navigate('/dashboard')
+  }
+
+  const updateProfile = (profile) => {
+    if (!session) return
+
+    const nextSession = {
+      ...session,
+      user: {
+        ...session.user,
+        ...profile,
+      },
+    }
+
+    persistSession(nextSession)
   }
 
   const logout = () => {
@@ -33,7 +50,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, login, registro, logout }}>
+    <AuthContext.Provider value={{ session, login, registro, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

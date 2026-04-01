@@ -123,8 +123,11 @@ export default function Carrito() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{item.producto.nombre}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {item.variant?.label || item.producto.modelo || item.producto.categoria}
+                  {item.variant?.modelLabel || item.producto.modelo || item.producto.categoria}
                 </p>
+                {item.variant?.label && (
+                  <p className="text-xs text-gray-400 mt-0.5">{item.variant.label}</p>
+                )}
                 <div className="flex items-center gap-2 mt-2">
                   <button onClick={() => cambiarCantidad(item.productoId, item.cantidad, -1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">-</button>
                   <span className="text-sm w-4 text-center">{item.cantidad}</span>

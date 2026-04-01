@@ -86,6 +86,8 @@ export default function ProductDetailCard({
   )
   const [selectedColor, setSelectedColor] = useState(colorSwatches[0] || null)
   const [selectedModelId, setSelectedModelId] = useState(resolvedModelOptions[0]?.id || null)
+  const selectedModel =
+    resolvedModelOptions.find((option) => option.id === selectedModelId) || resolvedModelOptions[0] || null
   const [mainImage, setMainImage] = useState(colorSwatches[0]?.img || producto.imagen || '')
   const [imageVisible, setImageVisible] = useState(true)
   const gallery = useMemo(() => {
@@ -141,6 +143,15 @@ export default function ProductDetailCard({
     setSelectedColor(swatch)
     setMainImage(swatch.img)
   }
+
+  const selectedPurchaseOption = selectedColor
+    ? {
+        ...selectedColor,
+        modelLabel: selectedModel?.label || producto.modelo || producto.nombre,
+      }
+    : {
+        modelLabel: selectedModel?.label || producto.modelo || producto.nombre,
+      }
 
   return (
     <section className="overflow-hidden rounded-[34px] border border-stone-100 bg-white shadow-[0_28px_80px_-50px_rgba(15,23,42,0.28)]">
@@ -337,7 +348,7 @@ export default function ProductDetailCard({
               <button
                 type="button"
                 disabled={effectiveStock === 0 || loadingAction}
-                onClick={() => onAddToCart?.(selectedColor)}
+                onClick={() => onAddToCart?.(selectedPurchaseOption)}
                 className="inline-flex min-h-14 flex-1 items-center justify-center gap-2 rounded-[20px] bg-red-500 px-6 text-base font-semibold text-white shadow-[0_20px_40px_-20px_rgba(239,68,68,0.65)] transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ShoppingCart size={18} />
@@ -361,7 +372,7 @@ export default function ProductDetailCard({
             <button
               type="button"
               disabled={effectiveStock === 0 || loadingAction}
-              onClick={() => onBuyNow?.(selectedColor)}
+              onClick={() => onBuyNow?.(selectedPurchaseOption)}
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-[20px] border border-stone-200 bg-white px-6 text-sm font-semibold text-stone-700 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.35)] transition-colors hover:border-stone-300 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Comprar ahora

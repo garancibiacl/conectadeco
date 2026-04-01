@@ -11,6 +11,8 @@ export default function Navbar() {
   const { cart, favorites } = useShop()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const badgeClassName =
+    'inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-none text-white shadow-[0_8px_18px_-10px_rgba(239,68,68,0.85)]'
 
   const handleFavoritesClick = async (event) => {
     if (session) {
@@ -55,7 +57,7 @@ export default function Navbar() {
           <Link to="/favoritos" onClick={handleFavoritesClick} className="ui-button flex items-center gap-1 hover:text-red-600 transition-colors">
               <Heart size={16} /> Favoritos
               {favorites.length > 0 && (
-                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-600">
+                <span className={badgeClassName}>
                   {favorites.length}
                 </span>
               )}
@@ -63,7 +65,7 @@ export default function Navbar() {
           <Link to="/carrito" className="ui-button flex items-center gap-1 hover:text-red-600 transition-colors">
             <ShoppingCart size={16} /> Carrito
             {cart.total > 0 && (
-              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+              <span className={badgeClassName}>
                 {cart.total}
               </span>
             )}
