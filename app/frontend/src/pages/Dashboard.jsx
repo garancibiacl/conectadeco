@@ -457,24 +457,39 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-stone-100 bg-white/85 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pedidos</p>
-                    <p className="mt-2 text-2xl font-bold text-slate-900">{totalPedidos}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[26px] border border-red-100 bg-gradient-to-br from-white via-red-50/70 to-rose-50/80 px-5 py-4 shadow-[0_22px_45px_-32px_rgba(239,68,68,0.35)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-red-500">Pedidos</p>
+                        <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">{totalPedidos}</p>
+                        <p className="mt-1 text-xs font-medium text-slate-500">
+                          Historial de compras y seguimiento.
+                        </p>
+                      </div>
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-red-500 shadow-[0_16px_30px_-22px_rgba(239,68,68,0.55)]">
+                        <ReceiptText size={18} />
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-stone-100 bg-white/85 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Productos</p>
-                    <p className="mt-2 text-2xl font-bold text-slate-900">{totalItemsPurchased}</p>
-                  </div>
-                  <div className="rounded-2xl border border-stone-100 bg-white/85 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Favoritos</p>
-                    <p className="mt-2 text-2xl font-bold text-slate-900">{favorites.length}</p>
-                    <p className="mt-1 text-xs text-slate-400">{cart.total} en carrito</p>
+                  <div className="rounded-[26px] border border-rose-100 bg-gradient-to-br from-white via-rose-50/70 to-orange-50/80 px-5 py-4 shadow-[0_22px_45px_-32px_rgba(244,114,182,0.28)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-500">Favoritos</p>
+                        <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">{favorites.length}</p>
+                        <p className="mt-1 text-xs font-medium text-slate-500">
+                          {cart.total} en carrito
+                        </p>
+                      </div>
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-rose-500 shadow-[0_16px_30px_-22px_rgba(244,114,182,0.45)]">
+                        <Heart size={18} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-2 rounded-[24px] bg-[#fcfbf9] p-2">
+              <div className="mt-6 flex flex-wrap gap-2 rounded-[22px] border border-red-100/70 bg-gradient-to-r from-red-50/80 via-white to-rose-50/70 p-2 shadow-[0_18px_34px_-32px_rgba(239,68,68,0.2)]">
                 {DASHBOARD_SECTIONS.map((section) => {
                   const Icon = section.icon
                   const isActive = section.id === activeSection
@@ -484,14 +499,20 @@ export default function Dashboard() {
                       key={section.id}
                       type="button"
                       onClick={() => setActiveSection(section.id)}
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2.5 text-sm font-semibold transition-all duration-200 ${
                         isActive
-                          ? 'bg-white text-slate-900 shadow-[0_10px_25px_-18px_rgba(15,23,42,0.35)]'
-                          : 'text-slate-500 hover:-translate-y-0.5 hover:text-slate-800'
+                          ? 'border-red-500 bg-red-500 text-white shadow-[0_16px_28px_-20px_rgba(239,68,68,0.48)]'
+                          : 'border-white/80 bg-white/85 text-slate-600 shadow-[0_10px_18px_-18px_rgba(15,23,42,0.22)] hover:-translate-y-0.5 hover:border-red-200 hover:bg-white hover:text-red-600'
                       }`}
                       aria-pressed={isActive}
                     >
-                      <Icon size={16} />
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+                          isActive ? 'bg-white/18 text-white' : 'bg-red-50 text-red-500'
+                        }`}
+                      >
+                        <Icon size={15} />
+                      </span>
                       {section.label}
                     </button>
                   )
@@ -742,7 +763,7 @@ export default function Dashboard() {
                     return (
                       <article
                         key={pedido.id}
-                        className={`overflow-hidden rounded-[28px] border border-white/70 bg-gradient-to-br ${statusTheme.cardTint} shadow-[0_18px_50px_-35px_rgba(15,23,42,0.35)] transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_24px_56px_-28px_rgba(15,23,42,0.3)]`}
+                        className="overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_18px_50px_-35px_rgba(15,23,42,0.35)] transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_24px_56px_-28px_rgba(15,23,42,0.3)]"
                       >
                         <div className="flex flex-col gap-4 border-b border-stone-100 px-5 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
                           <div>

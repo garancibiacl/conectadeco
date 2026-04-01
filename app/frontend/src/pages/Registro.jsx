@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, Heart, Lock, Mail, Sparkles, User } from 'lucide-react'
 import Swal from 'sweetalert2'
 import { useAuth } from '../context/AuthContext'
@@ -24,6 +24,7 @@ const REGISTER_BENEFITS = [
 ]
 
 export default function Registro() {
+  const navigate = useNavigate()
   const { registro } = useAuth()
   const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmar: '' })
   const [loading, setLoading] = useState(false)
@@ -42,7 +43,33 @@ export default function Registro() {
     }
     setLoading(true)
     try {
-      await registro(form.nombre, form.email, form.password)
+      const session = await registro(form.nombre, form.email, form.password)
+      const userName = session?.user?.nombre || form.nombre || 'Bienvenida'
+
+      await Swal.fire({
+        title: `Bienvenida, ${userName}`,
+        html: `
+          <div style="display:flex; flex-direction:column; gap:10px; text-align:center;">
+            <p style="margin:0; font-size:15px; line-height:1.6; color:#475569;">
+              Tu cuenta ya está lista y nos alegra tenerte en ConectaDeco.
+            </p>
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#64748b;">
+              Ahora puedes guardar favoritos, seguir tus pedidos y comprar con una experiencia mucho más cercana.
+            </p>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Ir al inicio',
+        confirmButtonColor: '#dc2626',
+        background: '#ffffff',
+        customClass: {
+          popup: 'rounded-[30px] shadow-[0_30px_90px_-35px_rgba(15,23,42,0.38)]',
+          title: 'text-slate-900',
+          confirmButton: 'rounded-full px-6 py-3 font-semibold',
+        },
+      })
+
+      navigate('/')
     } catch (err) {
       Swal.fire({
         icon: 'error',

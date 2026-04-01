@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     const { data } = await api.post('/auth/register', { nombre, email, password })
     const s = { token: data.token, user: data.user }
     persistSession(s)
-    navigate('/dashboard')
+    return s
   }
 
   const updateProfile = (profile) => {
