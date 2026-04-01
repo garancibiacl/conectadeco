@@ -77,7 +77,7 @@ export default function Navbar() {
           {session ? (
             <>
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/dashboard', { state: { section: 'profile' } })}
                 className="ui-button flex items-center gap-1 text-sm text-gray-600 hover:text-red-600 transition-colors"
               >
                 <User size={16} /> {session.user?.nombre || 'Mi cuenta'}
@@ -119,7 +119,14 @@ export default function Navbar() {
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="ui-button text-gray-700 hover:text-red-600">Carrito</Link>
           {session ? (
             <>
-              <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="ui-button text-gray-700 hover:text-red-600">Mi cuenta</Link>
+              <Link
+                to="/dashboard"
+                state={{ section: 'profile' }}
+                onClick={() => setMenuOpen(false)}
+                className="ui-button text-gray-700 hover:text-red-600"
+              >
+                Mi cuenta
+              </Link>
               <button onClick={() => { logout(); setMenuOpen(false) }} className="ui-button text-left text-red-600">Cerrar sesión</button>
             </>
           ) : (

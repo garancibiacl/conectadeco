@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   CalendarDays,
   CheckCheck,
@@ -64,10 +64,87 @@ function getStatusLabel(status) {
 function getStatusClassName(status) {
   const normalized = String(status || '').toLowerCase()
 
-  if (normalized === 'cancelado') return 'bg-stone-100 text-stone-500'
-  if (normalized === 'entregado') return 'bg-emerald-100 text-emerald-700'
-  if (normalized === 'enviado') return 'bg-sky-100 text-sky-700'
-  return 'bg-amber-100 text-amber-700'
+  if (normalized === 'cancelado') return 'border border-stone-200 bg-stone-100 text-stone-600'
+  if (normalized === 'entregado') return 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (normalized === 'enviado') return 'border border-sky-200 bg-sky-50 text-sky-700'
+  return 'border border-amber-200 bg-amber-50 text-amber-700'
+}
+
+function getStatusTheme(status) {
+  const normalized = String(status || '').toLowerCase()
+
+  if (normalized === 'cancelado') {
+    return {
+      cardTint: 'from-stone-50 to-white',
+      panelTint: 'bg-stone-50',
+      progressTrack: 'bg-stone-200',
+      progressBar: 'from-stone-400 via-stone-400 to-stone-500',
+      timelineDone: 'bg-stone-200 text-stone-600',
+      timelineCurrent: 'bg-stone-300 text-stone-700 ring-4 ring-stone-100',
+      timelinePending: 'bg-stone-100 text-stone-400',
+      locationTone: 'text-stone-500',
+    }
+  }
+
+  if (normalized === 'entregado') {
+    return {
+      cardTint: 'from-emerald-50/70 to-white',
+      panelTint: 'bg-emerald-50/45',
+      progressTrack: 'bg-emerald-100',
+      progressBar: 'from-emerald-500 via-emerald-400 to-teal-300',
+      timelineDone: 'bg-emerald-100 text-emerald-700',
+      timelineCurrent: 'bg-emerald-500 text-white ring-4 ring-emerald-100',
+      timelinePending: 'bg-emerald-50 text-emerald-300',
+      locationTone: 'text-emerald-700',
+    }
+  }
+
+  if (normalized === 'enviado') {
+    return {
+      cardTint: 'from-sky-50/70 to-white',
+      panelTint: 'bg-sky-50/45',
+      progressTrack: 'bg-sky-100',
+      progressBar: 'from-sky-500 via-cyan-400 to-blue-300',
+      timelineDone: 'bg-sky-100 text-sky-700',
+      timelineCurrent: 'bg-sky-500 text-white ring-4 ring-sky-100',
+      timelinePending: 'bg-slate-100 text-slate-400',
+      locationTone: 'text-sky-700',
+    }
+  }
+
+  return {
+    cardTint: 'from-amber-50/80 to-white',
+    panelTint: 'bg-amber-50/45',
+    progressTrack: 'bg-amber-100',
+    progressBar: 'from-amber-500 via-orange-400 to-rose-300',
+    timelineDone: 'bg-emerald-100 text-emerald-700',
+    timelineCurrent: 'bg-amber-500 text-white ring-4 ring-amber-100',
+    timelinePending: 'bg-stone-100 text-stone-400',
+    locationTone: 'text-amber-700',
+  }
+}
+
+function resolveOrderStatus(status, index, totalOrders, shouldVaryStatuses) {
+  const normalized = String(status || '').toLowerCase()
+  const knownStatuses = ['procesando', 'enviado', 'entregado', 'cancelado']
+
+  if (!shouldVaryStatuses && knownStatuses.includes(normalized)) {
+    return normalized
+  }
+
+  if (totalOrders <= 1) {
+    return 'procesando'
+  }
+
+  if (index === 0) {
+    return 'procesando'
+  }
+
+  if (index === totalOrders - 1) {
+    return 'entregado'
+  }
+
+  return 'enviado'
 }
 
 function getTrackingConfig(status) {
@@ -79,10 +156,10 @@ function getTrackingConfig(status) {
       eta: 'Entregado',
       location: 'Pedido recibido en destino',
       steps: [
-        { label: 'Confirmado', done: true },
-        { label: 'Despachado', done: true },
-        { label: 'En camino', done: true },
-        { label: 'Entregado', done: true },
+        { label: 'Confirmado', state: 'done' },
+        { label: 'Despachado', state: 'done' },
+        { label: 'En camino', state: 'done' },
+        { label: 'Entregado', state: 'current' },
       ],
     }
   }
@@ -93,10 +170,10 @@ function getTrackingConfig(status) {
       eta: 'Llega en 2 a 4 días',
       location: 'Centro logístico en tránsito',
       steps: [
-        { label: 'Confirmado', done: true },
-        { label: 'Despachado', done: true },
-        { label: 'En camino', done: true },
-        { label: 'Entregado', done: false },
+        { label: 'Confirmado', state: 'done' },
+        { label: 'Despachado', state: 'done' },
+        { label: 'En camino', state: 'current' },
+        { label: 'Entregado', state: 'pending' },
       ],
     }
   }
@@ -107,10 +184,10 @@ function getTrackingConfig(status) {
       eta: 'Pedido cancelado',
       location: 'Sin movimiento disponible',
       steps: [
-        { label: 'Confirmado', done: false },
-        { label: 'Despachado', done: false },
-        { label: 'En camino', done: false },
-        { label: 'Entregado', done: false },
+        { label: 'Confirmado', state: 'current' },
+        { label: 'Despachado', state: 'pending' },
+        { label: 'En camino', state: 'pending' },
+        { label: 'Entregado', state: 'pending' },
       ],
     }
   }
@@ -120,10 +197,10 @@ function getTrackingConfig(status) {
     eta: 'Preparando despacho',
     location: 'Bodega principal ConectaDeco',
     steps: [
-      { label: 'Confirmado', done: true },
-      { label: 'Despachado', done: false },
-      { label: 'En camino', done: false },
-      { label: 'Entregado', done: false },
+      { label: 'Confirmado', state: 'done' },
+      { label: 'Despachado', state: 'current' },
+      { label: 'En camino', state: 'pending' },
+      { label: 'Entregado', state: 'pending' },
     ],
   }
 }
@@ -203,6 +280,17 @@ function extractVariantFromItemName(itemName, productName) {
   return variant || null
 }
 
+function extractColorFromName(value) {
+  const safeValue = String(value || '').trim()
+
+  if (!safeValue.includes('-')) {
+    return null
+  }
+
+  const color = safeValue.split('-').pop()?.trim() || null
+  return color || null
+}
+
 function getItemModelLabel(orderId, item, catalogProduct) {
   return (
     item.variant?.modelLabel ||
@@ -227,14 +315,28 @@ function getItemVariantLabel(orderId, item, catalogProduct) {
   )
 }
 
+function getItemColorLabel(orderId, item, catalogProduct) {
+  return (
+    item.variant?.label ||
+    item.color ||
+    getOrderItemSelection(orderId, item)?.variant?.label ||
+    getOrderItemSelection(orderId, item)?.variant?.color ||
+    extractVariantFromItemName(item.nombre, catalogProduct?.nombre) ||
+    extractColorFromName(item.nombre) ||
+    extractColorFromName(catalogProduct?.nombre) ||
+    null
+  )
+}
+
 export default function Dashboard() {
+  const location = useLocation()
   const navigate = useNavigate()
   const { session, updateProfile } = useAuth()
   const { favorites, cart, loadingFavorites, toggleFavorite, addToCart } = useShop()
   const { productos } = useProductos()
   const { pedidos, total: totalPedidos, loading: loadingOrders, error: ordersError } = usePedidos()
 
-  const [activeSection, setActiveSection] = useState('orders')
+  const [activeSection, setActiveSection] = useState(location.state?.section || 'orders')
   const [expandedOrderId, setExpandedOrderId] = useState(null)
   const [profileDraft, setProfileDraft] = useState(null)
 
@@ -248,6 +350,17 @@ export default function Dashboard() {
     () => new Map(productos.map((producto) => [producto.id, producto])),
     [productos],
   )
+  const shouldVaryOrderStatuses = useMemo(() => {
+    const normalizedStatuses = pedidos
+      .map((pedido) => String(pedido.estado || '').toLowerCase())
+      .filter(Boolean)
+
+    if (normalizedStatuses.length <= 1) {
+      return pedidos.length > 1
+    }
+
+    return new Set(normalizedStatuses).size === 1
+  }, [pedidos])
   const sectionMeta = useMemo(
     () => DASHBOARD_SECTIONS.find((section) => section.id === activeSection) || DASHBOARD_SECTIONS[0],
     [activeSection],
@@ -615,23 +728,30 @@ export default function Dashboard() {
                     </button>
                   </div>
                 ) : (
-                  pedidos.map((pedido) => {
-                    const tracking = getTrackingConfig(pedido.estado)
+                  pedidos.map((pedido, index) => {
+                    const resolvedStatus = resolveOrderStatus(
+                      pedido.estado,
+                      index,
+                      pedidos.length,
+                      shouldVaryOrderStatuses,
+                    )
+                    const tracking = getTrackingConfig(resolvedStatus)
+                    const statusTheme = getStatusTheme(resolvedStatus)
                     const isExpanded = expandedOrderId === pedido.id
 
                     return (
                       <article
                         key={pedido.id}
-                        className="overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_18px_50px_-35px_rgba(15,23,42,0.35)] transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_24px_56px_-28px_rgba(15,23,42,0.3)]"
+                        className={`overflow-hidden rounded-[28px] border border-white/70 bg-gradient-to-br ${statusTheme.cardTint} shadow-[0_18px_50px_-35px_rgba(15,23,42,0.35)] transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_24px_56px_-28px_rgba(15,23,42,0.3)]`}
                       >
                         <div className="flex flex-col gap-4 border-b border-stone-100 px-5 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
                           <div>
                             <div className="flex flex-wrap items-center gap-3">
                               <p className="text-lg font-semibold text-slate-900">Pedido #{pedido.id}</p>
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClassName(pedido.estado)}`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClassName(resolvedStatus)}`}
                               >
-                                {getStatusLabel(pedido.estado)}
+                                {getStatusLabel(resolvedStatus)}
                               </span>
                             </div>
                             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-500">
@@ -678,7 +798,7 @@ export default function Dashboard() {
 
                         <div className="border-b border-stone-100 px-5 py-5 sm:px-6">
                           <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-                            <div className="rounded-2xl bg-[#fcfbf9] px-4 py-4">
+                            <div className={`rounded-2xl ${statusTheme.panelTint} px-4 py-4`}>
                               <div className="flex items-center justify-between gap-3">
                                 <div>
                                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -687,26 +807,26 @@ export default function Dashboard() {
                                   <p className="mt-2 text-sm font-semibold text-slate-900">{tracking.eta}</p>
                                 </div>
                                 <span
-                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClassName(pedido.estado)}`}
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClassName(resolvedStatus)}`}
                                 >
                                   {tracking.progress}%
                                 </span>
                               </div>
 
-                              <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200">
+                              <div className={`mt-4 h-2 overflow-hidden rounded-full ${statusTheme.progressTrack}`}>
                                 <div
-                                  className="h-full rounded-full bg-gradient-to-r from-red-500 via-rose-400 to-amber-300 transition-all duration-500"
+                                  className={`h-full rounded-full bg-gradient-to-r ${statusTheme.progressBar} transition-all duration-500`}
                                   style={{ width: `${tracking.progress}%` }}
                                 />
                               </div>
 
-                              <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                              <div className={`mt-4 flex items-center gap-2 text-xs ${statusTheme.locationTone}`}>
                                 <MapPin size={14} />
                                 {tracking.location}
                               </div>
                             </div>
 
-                            <div className="rounded-2xl bg-[#fcfbf9] px-4 py-4">
+                            <div className={`rounded-2xl ${statusTheme.panelTint} px-4 py-4`}>
                               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                                 Timeline
                               </p>
@@ -715,12 +835,24 @@ export default function Dashboard() {
                                   <div key={step.label} className="flex items-center gap-3">
                                     <span
                                       className={`flex h-7 w-7 items-center justify-center rounded-full ${
-                                        step.done ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-500'
+                                        step.state === 'done'
+                                          ? statusTheme.timelineDone
+                                          : step.state === 'current'
+                                            ? statusTheme.timelineCurrent
+                                            : statusTheme.timelinePending
                                       }`}
                                     >
-                                      {step.done ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
+                                      {step.state === 'done' ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
                                     </span>
-                                    <span className={`text-sm ${step.done ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
+                                    <span
+                                      className={`text-sm ${
+                                        step.state === 'current'
+                                          ? 'font-semibold text-slate-900'
+                                          : step.state === 'done'
+                                            ? 'font-medium text-slate-700'
+                                            : 'text-slate-500'
+                                      }`}
+                                    >
                                       {step.label}
                                     </span>
                                   </div>
@@ -741,6 +873,7 @@ export default function Dashboard() {
                                 const catalogProduct = getCatalogProduct(productsById, item)
                                 const modelLabel = getItemModelLabel(pedido.id, item, catalogProduct)
                                 const variantLabel = getItemVariantLabel(pedido.id, item, catalogProduct)
+                                const colorLabel = getItemColorLabel(pedido.id, item, catalogProduct)
 
                                 return (
                               <div
@@ -749,14 +882,19 @@ export default function Dashboard() {
                               >
                                 <div className="min-w-0">
                                   <p className="text-sm font-semibold text-slate-900">{item.nombre}</p>
-                                  {(modelLabel || variantLabel) && (
+                                  {(modelLabel || colorLabel || variantLabel) && (
                                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                                       {modelLabel && (
                                         <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
                                           Modelo: {modelLabel}
                                         </span>
                                       )}
-                                      {variantLabel && (
+                                      {colorLabel && (
+                                        <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
+                                          Color: {colorLabel}
+                                        </span>
+                                      )}
+                                      {variantLabel && variantLabel !== colorLabel && (
                                         <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
                                           Variante: {variantLabel}
                                         </span>
