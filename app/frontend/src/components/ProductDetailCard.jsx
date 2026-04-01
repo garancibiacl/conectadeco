@@ -66,26 +66,33 @@ export default function ProductDetailCard({
   const [mainImage, setMainImage] = useState(colorSwatches[0]?.img || producto.imagen || '')
   const [imageVisible, setImageVisible] = useState(true)
   const gallery = useMemo(() => {
-    const fallbackGallery = buildGallery(producto)
-
-    if (!mainImage) {
-      return fallbackGallery
-    }
-
-    if (fallbackGallery.some((item) => item.src === mainImage)) {
-      return fallbackGallery
-    }
-
-    return [
-      {
-        id: 'selected-main',
-        src: mainImage,
-        alt: `${producto.nombre} color seleccionado`,
+    const swatchGallery = colorSwatches
+      .filter((swatch) => Boolean(swatch.img))
+      .map((swatch) => ({
+        id: `swatch-${swatch.color}`,
+        src: swatch.img,
+        alt: `${producto.nombre} color ${swatch.color}`,
         bg: 'bg-white',
-      },
-      ...fallbackGallery.slice(1),
-    ]
-  }, [mainImage, producto])
+        color: swatch.color,
+      }))
+
+    const orderedSwatches = selectedColor
+      ? [
+          ...swatchGallery.filter((item) => item.color === selectedColor.color),
+          ...swatchGallery.filter((item) => item.color !== selectedColor.color),
+        ]
+      : swatchGallery
+
+    if (orderedSwatches.length >= 4) {
+      return orderedSwatches.slice(0, 4)
+    }
+
+    const fallbackGallery = buildGallery(producto)
+      .filter((item) => item.src && !orderedSwatches.some((swatch) => swatch.src === item.src))
+      .slice(0, Math.max(0, 4 - orderedSwatches.length))
+
+    return [...orderedSwatches, ...fallbackGallery]
+  }, [colorSwatches, producto, selectedColor])
   const previousPrice = Math.round(Number(producto.precio) * 1.35)
   const effectiveStock = producto.stock
 
@@ -157,7 +164,14 @@ export default function ProductDetailCard({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => item.src && setMainImage(item.src)}
+                  onClick={() => {
+                    if (!item.src) return
+                    setMainImage(item.src)
+                    const matchingSwatch = colorSwatches.find((swatch) => swatch.img === item.src)
+                    if (matchingSwatch) {
+                      setSelectedColor(matchingSwatch)
+                    }
+                  }}
                   className={`flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border transition-all ${
                     active
                       ? 'border-red-500 ring-2 ring-red-100'
