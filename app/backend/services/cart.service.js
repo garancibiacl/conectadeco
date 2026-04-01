@@ -111,14 +111,20 @@ async function upsertCartItem(userId, productId, qty, mode = 'replace') {
     throw new AppError(`Stock insuficiente para ${product.nombre}.`, 409);
   }
 
-  const result = await query(
-    `INSERT INTO cart_items (usuario_id, producto_id, cantidad)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (usuario_id, producto_id)
-     DO UPDATE SET cantidad = EXCLUDED.cantidad
-     RETURNING id, producto_id, cantidad, created_at`,
-    [userId, normalizedProductId, finalQty]
-  );
+  const result = existingItem
+    ? await query(
+        `UPDATE cart_items
+         SET cantidad = $3
+         WHERE usuario_id = $1 AND producto_id = $2
+         RETURNING id, producto_id, cantidad, created_at`,
+        [userId, normalizedProductId, finalQty]
+      )
+    : await query(
+        `INSERT INTO cart_items (usuario_id, producto_id, cantidad)
+         VALUES ($1, $2, $3)
+         RETURNING id, producto_id, cantidad, created_at`,
+        [userId, normalizedProductId, finalQty]
+      );
 
   const [itemRow] = result.rows;
   const cart = await getCartByUser(userId);
