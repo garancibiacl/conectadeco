@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext'
 
 const ShopContext = createContext(null)
 const GUEST_CART_STORAGE_KEY = 'guest_cart'
+const CART_VARIANTS_STORAGE_KEY = 'cart_variants'
 
 function createAuthRequiredError() {
   const error = new Error('AUTH_REQUIRED')
@@ -45,6 +46,60 @@ function resetGuestCartEntries() {
   localStorage.removeItem(GUEST_CART_STORAGE_KEY)
 }
 
+function readCartVariants() {
+  try {
+    const raw = localStorage.getItem(CART_VARIANTS_STORAGE_KEY)
+    const parsed = JSON.parse(raw || '{}')
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+
+    return parsed
+  } catch {
+    return {}
+  }
+}
+
+function writeCartVariants(variants) {
+  localStorage.setItem(CART_VARIANTS_STORAGE_KEY, JSON.stringify(variants))
+}
+
+function setCartVariant(productId, variant) {
+  if (!variant) return
+
+  const variants = readCartVariants()
+  variants[String(productId)] = {
+    label: variant.label || null,
+    color: variant.color || null,
+    img: variant.img || variant.image || null,
+  }
+  writeCartVariants(variants)
+}
+
+function removeCartVariant(productId) {
+  const variants = readCartVariants()
+  delete variants[String(productId)]
+  writeCartVariants(variants)
+}
+
+function applyStoredVariant(item, variantsByProductId) {
+  const variant = variantsByProductId[String(item.productoId)]
+
+  if (!variant) {
+    return item
+  }
+
+  return {
+    ...item,
+    variant,
+    producto: {
+      ...item.producto,
+      imagen: variant.img || item.producto.imagen,
+    },
+  }
+}
+
 function mapGuestCartItem(producto, cantidad) {
   return {
     id: `guest-${producto.id}`,
@@ -65,6 +120,22 @@ function mapGuestCartItem(producto, cantidad) {
   }
 }
 
+function mapGuestCartItemWithVariant(producto, cantidad, variant) {
+  const item = mapGuestCartItem(producto, cantidad)
+
+  if (!variant) {
+    return item
+  }
+
+  return applyStoredVariant(item, {
+    [producto.id]: {
+      label: variant.label || null,
+      color: variant.color || null,
+      img: variant.img || variant.image || null,
+    },
+  })
+}
+
 function buildCartState(items) {
   return {
     items,
@@ -82,6 +153,7 @@ export function ShopProvider({ children }) {
 
   const loadGuestCart = async () => {
     const entries = readGuestCartEntries()
+    const variantsByProductId = readCartVariants()
 
     if (entries.length === 0) {
       setCart({ items: [], total: 0, subtotal: 0 })
@@ -117,7 +189,7 @@ export function ShopProvider({ children }) {
         productId: result.producto.id,
         qty: availableQty,
       })
-      items.push(mapGuestCartItem(result.producto, availableQty))
+      items.push(applyStoredVariant(mapGuestCartItem(result.producto, availableQty), variantsByProductId))
     })
 
     if (validEntries.length > 0) {
@@ -154,8 +226,9 @@ export function ShopProvider({ children }) {
     setLoadingCart(true)
     try {
       const { data } = await api.get('/cart')
+      const variantsByProductId = readCartVariants()
       setCart({
-        items: data.items || [],
+        items: (data.items || []).map((item) => applyStoredVariant(item, variantsByProductId)),
         total: data.total || 0,
         subtotal: data.subtotal || 0,
       })
@@ -211,11 +284,23 @@ export function ShopProvider({ children }) {
     }
   }
 
-  const addToCart = async (productId, qty = 1) => {
+  const addToCart = async (productId, qty = 1, selectedVariant = null) => {
+    if (selectedVariant) {
+      setCartVariant(productId, selectedVariant)
+    }
+
     if (session?.token) {
       const { data } = await api.post('/cart', { product_id: productId, qty })
       await refreshCart()
-      return data.item
+      return selectedVariant
+        ? applyStoredVariant(data.item, {
+            [productId]: {
+              label: selectedVariant.label || null,
+              color: selectedVariant.color || null,
+              img: selectedVariant.img || selectedVariant.image || null,
+            },
+          })
+        : data.item
     }
 
     const normalizedQty = Number(qty)
@@ -236,7 +321,7 @@ export function ShopProvider({ children }) {
 
     writeGuestCartEntries(nextEntries)
     await loadGuestCart()
-    return mapGuestCartItem(producto, finalQty)
+    return mapGuestCartItemWithVariant(producto, finalQty, selectedVariant)
   }
 
   const updateCartItem = async (productId, qty) => {
@@ -273,6 +358,7 @@ export function ShopProvider({ children }) {
   const removeCartItem = async (productId) => {
     if (session?.token) {
       await api.delete(`/cart/${productId}`)
+      removeCartVariant(productId)
       await refreshCart()
       return
     }
@@ -290,6 +376,7 @@ export function ShopProvider({ children }) {
       resetGuestCartEntries()
     }
 
+    removeCartVariant(productId)
     await loadGuestCart()
   }
 

@@ -15,23 +15,27 @@ function buildProductSwatches(producto) {
   if (isPremiumSiliconeCase) {
     return [
       {
+        label: 'Rojo Crimson',
         color: '#A42949',
         img: 'https://ae-pic-a1.aliexpress-media.com/kf/S44777cf674504d6a870e763dd5604cd4J.jpg_960x960q75.jpg_.avif',
       },
       {
+        label: 'Celeste Ice',
         color: '#C7F0F5',
         img: 'https://ae-pic-a1.aliexpress-media.com/kf/Sbd7ed9ee1d58448392466ad2756bc40ep.jpg_960x960q75.jpg_.avif',
       },
       {
+        label: 'Beige Sand',
         color: '#EBE6DF',
         img: 'https://ae-pic-a1.aliexpress-media.com/kf/S63a0d3526a7f4e90837075467b97971aK.jpg_960x960q75.jpg_.avif',
       },
-      { color: '#111111', img: producto.imagen || '' },
+      { label: 'Negro', color: '#111111', img: producto.imagen || '' },
     ]
   }
 
   return [
     {
+      label: 'Color principal',
       color: '#111111',
       img: producto.imagen || '',
     },
@@ -248,7 +252,7 @@ export default function ProductDetailCard({
                     onClick={() => handleColorSelect(swatch)}
                     role="radio"
                     aria-checked={isActive}
-                    aria-label={`Color ${swatch.color}`}
+                    aria-label={swatch.label || `Color ${swatch.color}`}
                     className={`relative h-6 w-6 rounded-full transition duration-200 ease-out hover:scale-110 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 ${
                       isActive ? 'ring-2 ring-offset-2 ring-red-500' : ''
                     }`}

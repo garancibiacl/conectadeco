@@ -146,7 +146,8 @@ export default function ProductDetail() {
     if (!producto) return
 
     const availableStock = selectedVariant?.stock ?? producto.stock
-    const variantLabel = selectedVariant?.color ? ` (${selectedVariant.color})` : ''
+    const variantName = selectedVariant?.label || selectedVariant?.color
+    const variantLabel = variantName ? ` (${variantName})` : ''
 
     if (quantity > availableStock) {
       await Swal.fire({
@@ -185,7 +186,7 @@ export default function ProductDetail() {
         }
       }
 
-      await addToCart(producto.id, quantity)
+      await addToCart(producto.id, quantity, selectedVariant)
       await Swal.fire({
         icon: 'success',
         title: 'Producto agregado',
@@ -251,7 +252,7 @@ export default function ProductDetail() {
         }
       }
 
-      await addToCart(producto.id, quantity)
+      await addToCart(producto.id, quantity, selectedVariant)
       navigate('/carrito')
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
