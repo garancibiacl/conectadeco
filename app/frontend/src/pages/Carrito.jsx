@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, ShoppingBag } from 'lucide-react'
 import Swal from 'sweetalert2'
+import GuestCheckoutForm from '../components/GuestCheckoutForm'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useShop } from '../context/ShopContext'
@@ -55,8 +56,13 @@ export default function Carrito() {
   const { session } = useAuth()
   const { cart, loadingCart, updateCartItem, removeCartItem, refreshCart } = useShop()
   const [procesando, setProcesando] = useState(false)
+  const [guestCheckoutState, setGuestCheckoutState] = useState({
+    isValid: false,
+    data: null,
+  })
   const items = cart.items
   const subtotal = cart.subtotal
+  const itemCountLabel = `${items.length} item${items.length > 1 ? 's' : ''}`
 
   const eliminar = async (productId) => {
     try {
@@ -87,9 +93,36 @@ export default function Carrito() {
   }
 
   const handleCompra = async () => {
+    if (!session && !guestCheckoutState.isValid) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Completa tus datos',
+        text: 'Revisa el formulario de compra como invitado para continuar.',
+        confirmButtonColor: '#dc2626',
+      })
+      return
+    }
+
     setProcesando(true)
 
     try {
+      if (!session) {
+        const guestOrderId = `guest-${Date.now()}`
+
+        persistOrderSelectionSnapshot(guestOrderId, items)
+
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Compra procesada!',
+          text: `Tu pedido #${guestOrderId} fue confirmado correctamente.`,
+          confirmButtonColor: '#dc2626',
+        })
+
+        await Promise.all(items.map((item) => removeCartItem(item.productoId)))
+        await refreshCart()
+        return
+      }
+
       const payload = {
         items: items.map((item) => ({
           product_id: item.productoId,
@@ -153,82 +186,169 @@ export default function Carrito() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Tu Carrito</h1>
-      <p className="text-gray-500 text-sm mb-8">{items.length} item{items.length > 1 ? 's' : ''} seleccionado{items.length > 1 ? 's' : ''}</p>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mb-10 flex flex-col gap-3 border-b border-red-100 pb-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-red-700">Checkout</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+          {session ? 'Revisa tu carrito' : 'Finaliza tu compra'}
+        </h1>
+        <p className="max-w-2xl text-sm leading-6 text-stone-600">
+          {session
+            ? 'Confirma tus productos y procesa tu pedido desde un flujo limpio y directo.'
+            : 'Estas comprando como invitado. Completa tus datos y termina el pedido sin crear una cuenta.'}
+        </p>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Items */}
-        <div className="flex-1 space-y-3">
-          {items.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-300 text-xs">
-                {item.producto.imagen ? <img src={item.producto.imagen} alt={item.producto.nombre} className="w-full h-full object-cover rounded-lg" /> : 'IMG'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{item.producto.nombre}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {item.variant?.modelLabel || item.producto.modelo || item.producto.categoria}
-                </p>
-                {item.variant?.label && (
-                  <p className="text-xs text-gray-400 mt-0.5">{item.variant.label}</p>
-                )}
-                <div className="flex items-center gap-2 mt-2">
-                  <button onClick={() => cambiarCantidad(item.productoId, item.cantidad, -1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">-</button>
-                  <span className="text-sm w-4 text-center">{item.cantidad}</span>
-                  <button onClick={() => cambiarCantidad(item.productoId, item.cantidad, 1)} className="w-6 h-6 rounded border border-gray-200 text-sm flex items-center justify-center hover:bg-gray-50">+</button>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="font-semibold text-gray-900">${item.subtotal.toLocaleString('es-CL')}</p>
-                <button onClick={() => eliminar(item.productoId)} className="mt-2 text-gray-400 hover:text-red-500 transition-colors">
-                  <Trash2 size={14} />
-                </button>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.45fr)_24rem] lg:items-start">
+        <div className="space-y-8">
+          {!session ? (
+            <GuestCheckoutForm onValidityChange={setGuestCheckoutState} />
+          ) : (
+            <section className="rounded-[2rem] border border-red-100 bg-gradient-to-br from-[#fffdfb] to-[#f8f1ee] p-6 shadow-[0_20px_60px_rgba(127,29,29,0.06)] sm:p-8">
+              <h2 className="text-lg font-semibold tracking-tight text-stone-950">Tu pedido</h2>
+              <p className="mt-2 text-sm leading-6 text-stone-600">
+                Revisa tus productos antes de confirmar la compra.
+              </p>
+            </section>
+          )}
+
+          <section className="rounded-[2rem] border border-stone-200 bg-white shadow-[0_16px_40px_rgba(28,25,23,0.05)]">
+            <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5 sm:px-8">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-stone-950">Items en tu carrito</h2>
+                <p className="mt-1 text-sm text-stone-500">{itemCountLabel} seleccionado{items.length > 1 ? 's' : ''}</p>
               </div>
             </div>
-          ))}
+
+            <div className="divide-y divide-stone-200">
+              {items.map((item) => (
+                <div key={item.id} className="flex gap-4 px-6 py-5 sm:px-8">
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
+                    {item.producto.imagen ? (
+                      <img src={item.producto.imagen} alt={item.producto.nombre} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[11px] uppercase tracking-[0.2em] text-stone-400">
+                        Img
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-stone-900">{item.producto.nombre}</p>
+                        <p className="text-sm text-stone-500">
+                          {item.variant?.modelLabel || item.producto.modelo || item.producto.categoria}
+                        </p>
+                        {item.variant?.label && (
+                          <p className="text-sm text-stone-500">{item.variant.label}</p>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-stone-900">${item.subtotal.toLocaleString('es-CL')}</p>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between gap-4">
+                      <div className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 p-1 shadow-inner">
+                        <button
+                          onClick={() => cambiarCantidad(item.productoId, item.cantidad, -1)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-stone-600 transition hover:bg-red-50 hover:text-red-700"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center text-sm text-stone-900">{item.cantidad}</span>
+                        <button
+                          onClick={() => cambiarCantidad(item.productoId, item.cantidad, 1)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-stone-600 transition hover:bg-red-50 hover:text-red-700"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => eliminar(item.productoId)}
+                        className="inline-flex items-center gap-2 text-sm text-stone-400 transition hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
-        {/* Resumen */}
-        <div className="w-full lg:w-72 shrink-0">
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm sticky top-20">
-            <h2 className="font-semibold text-gray-900 mb-4">Resumen total</h2>
-            <div className="space-y-2 text-sm mb-4">
+        <aside className="lg:sticky lg:top-24">
+          <section className="rounded-[2rem] border border-red-100 bg-gradient-to-b from-[#fffaf8] to-[#f6eee8] p-6 shadow-[0_22px_60px_rgba(127,29,29,0.12)] sm:p-7">
+            <div className="flex items-start justify-between gap-4 border-b border-red-100 pb-5">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-stone-950">Resumen del pedido</h2>
+                <p className="mt-1 text-sm text-stone-500">{itemCountLabel}</p>
+              </div>
               {!session && (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-left text-xs leading-5 text-emerald-800">
-                  Estás comprando como invitado. Puedes finalizar ahora o crear una cuenta más tarde para futuras compras.
+                <span className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-red-700">
+                  Invitado
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-4 py-6">
+              {!session && (
+                <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm leading-6 text-stone-600 shadow-[0_10px_24px_rgba(127,29,29,0.05)]">
+                  <p className="font-medium text-red-700">Estas comprando como invitado</p>
+                  <p className="mt-1">No necesitas crear cuenta para finalizar la compra.</p>
                 </div>
               )}
-              <div className="flex justify-between text-gray-600">
+
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={`summary-${item.id}`} className="flex items-start justify-between gap-4 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-stone-900">{item.producto.nombre}</p>
+                      <p className="mt-1 text-stone-500">Cantidad: {item.cantidad}</p>
+                    </div>
+                    <p className="whitespace-nowrap font-medium text-stone-900">${item.subtotal.toLocaleString('es-CL')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 border-t border-red-100 pt-5 text-sm">
+              <div className="flex items-center justify-between text-stone-600">
                 <span>Subtotal</span>
                 <span>${subtotal.toLocaleString('es-CL')}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex items-center justify-between text-stone-600">
                 <span>Envío</span>
-                <span className="text-green-600 font-medium">Gratis</span>
+                <span>Gratis</span>
               </div>
-              <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-3 text-base font-semibold text-stone-950">
                 <span>Total</span>
                 <span>${subtotal.toLocaleString('es-CL')}</span>
               </div>
             </div>
-            <button
-              onClick={handleCompra}
-              disabled={procesando}
-              className="w-full bg-red-600 text-white py-3 rounded-xl font-medium hover:bg-red-700 transition-colors"
-            >
-              {procesando ? 'Procesando...' : session ? 'Procesar compra' : 'Comprar como invitado'}
-            </button>
-            {!session && (
+
+            <div className="mt-7 space-y-3">
               <button
-                onClick={() => navigate('/registro')}
-                className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-red-200 hover:text-red-600"
+                onClick={handleCompra}
+                disabled={procesando || (!session && !guestCheckoutState.isValid)}
+                className="w-full rounded-full bg-red-600 px-5 py-3.5 text-base font-medium text-white shadow-[0_16px_32px_rgba(220,38,38,0.28)] transition hover:bg-red-700 hover:shadow-[0_18px_36px_rgba(185,28,28,0.32)] disabled:cursor-not-allowed disabled:bg-red-300 disabled:shadow-none"
               >
-                Crear cuenta y guardar historial
+                {procesando ? 'Procesando...' : 'Finalizar compra'}
               </button>
-            )}
-          </div>
-        </div>
+
+              {!session && (
+                <button
+                  onClick={() => navigate('/registro')}
+                  className="w-full rounded-full border border-red-200 bg-white/80 px-5 py-3 text-sm font-medium text-red-700 transition hover:border-red-500 hover:text-red-800"
+                >
+                  Crear cuenta mas tarde
+                </button>
+              )}
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   )
