@@ -1,21 +1,40 @@
 import { Check, Heart, ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-function buildProductSwatches(defaultImage) {
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+function buildProductSwatches(producto) {
+  const isPremiumSiliconeCase = normalizeText(producto.nombre) === normalizeText('Premium Silicone Case - Rojo Crimson')
+
+  if (isPremiumSiliconeCase) {
+    return [
+      {
+        color: '#A42949',
+        img: 'https://ae-pic-a1.aliexpress-media.com/kf/S44777cf674504d6a870e763dd5604cd4J.jpg_960x960q75.jpg_.avif',
+      },
+      {
+        color: '#C7F0F5',
+        img: 'https://ae-pic-a1.aliexpress-media.com/kf/Sbd7ed9ee1d58448392466ad2756bc40ep.jpg_960x960q75.jpg_.avif',
+      },
+      {
+        color: '#EBE6DF',
+        img: 'https://ae-pic-a1.aliexpress-media.com/kf/S63a0d3526a7f4e90837075467b97971aK.jpg_960x960q75.jpg_.avif',
+      },
+      { color: '#111111', img: producto.imagen || '' },
+    ]
+  }
+
   return [
     {
-      color: '#A42949',
-      img: 'https://ae-pic-a1.aliexpress-media.com/kf/S44777cf674504d6a870e763dd5604cd4J.jpg_960x960q75.jpg_.avif',
+      color: '#111111',
+      img: producto.imagen || '',
     },
-    {
-      color: '#C7F0F5',
-      img: 'https://ae-pic-a1.aliexpress-media.com/kf/Sbd7ed9ee1d58448392466ad2756bc40ep.jpg_960x960q75.jpg_.avif',
-    },
-    {
-      color: '#EBE6DF',
-      img: 'https://ae-pic-a1.aliexpress-media.com/kf/S63a0d3526a7f4e90837075467b97971aK.jpg_960x960q75.jpg_.avif',
-    },
-    { color: '#111111', img: defaultImage },
   ]
 }
 
@@ -45,8 +64,8 @@ export default function ProductDetailCard({
   onToggleFavorite,
 }) {
   const colorSwatches = useMemo(
-    () => buildProductSwatches(producto.imagen || ''),
-    [producto.imagen],
+    () => buildProductSwatches(producto),
+    [producto],
   )
   const resolvedModelOptions = useMemo(
     () =>
