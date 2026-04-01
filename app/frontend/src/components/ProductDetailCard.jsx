@@ -1,6 +1,24 @@
 import { Check, Heart, ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+function buildProductSwatches(defaultImage) {
+  return [
+    {
+      color: '#A42949',
+      img: 'https://ae-pic-a1.aliexpress-media.com/kf/S44777cf674504d6a870e763dd5604cd4J.jpg_960x960q75.jpg_.avif',
+    },
+    {
+      color: '#C7F0F5',
+      img: 'https://ae-pic-a1.aliexpress-media.com/kf/Sbd7ed9ee1d58448392466ad2756bc40ep.jpg_960x960q75.jpg_.avif',
+    },
+    {
+      color: '#EBE6DF',
+      img: 'https://ae-pic-a1.aliexpress-media.com/kf/S63a0d3526a7f4e90837075467b97971aK.jpg_960x960q75.jpg_.avif',
+    },
+    { color: '#111111', img: defaultImage },
+  ]
+}
+
 function buildGallery(producto) {
   if (!producto.imagen) {
     return []
@@ -14,43 +32,6 @@ function buildGallery(producto) {
   ]
 }
 
-function buildColorOptions(producto) {
-  if (Array.isArray(producto.variantes) && producto.variantes.length > 0) {
-    return producto.variantes.map((variant, index) => ({
-      id: variant.id ?? `${variant.color || 'color'}-${index}`,
-      label: variant.color || `Color ${index + 1}`,
-      className: '',
-      colorHex: variant.colorHex || variant.color_hex || '#111827',
-      active: index === 0,
-      stock: variant.stock ?? producto.stock,
-      image: variant.imagen || variant.imagen_url || producto.imagen,
-      images:
-        Array.isArray(variant.imagenes) && variant.imagenes.length > 0
-          ? variant.imagenes
-          : [variant.imagen || variant.imagen_url || producto.imagen].filter(Boolean),
-    }))
-  }
-
-  const baseOptions = [
-    { id: 'rojo', label: 'Rojo coral', className: 'bg-[#ff6b6b]' },
-    { id: 'azul', label: 'Azul noche', className: 'bg-[#19376d]' },
-    { id: 'gris', label: 'Perla', className: 'bg-[#e5e7eb]' },
-    { id: 'negro', label: 'Negro grafito', className: 'bg-[#111827]' },
-  ]
-
-  const text = `${producto.nombre} ${producto.descripcion || ''}`.toLowerCase()
-  const keywordMap = [
-    { match: ['rojo', 'crimson', 'blush', 'rose'], id: 'rojo' },
-    { match: ['blue', 'azul', 'night', 'midnight'], id: 'azul' },
-    { match: ['black', 'negro', 'graphite', 'orchid'], id: 'negro' },
-  ]
-
-  const activeColor =
-    keywordMap.find(({ match }) => match.some((keyword) => text.includes(keyword)))?.id || 'negro'
-
-  return baseOptions.map((option) => ({ ...option, active: option.id === activeColor }))
-}
-
 export default function ProductDetailCard({
   producto,
   modelOptions = [],
@@ -62,48 +43,87 @@ export default function ProductDetailCard({
   onAddToCart,
   onBuyNow,
   onToggleFavorite,
-  onSelectModel,
 }) {
-  const colorOptions = useMemo(() => buildColorOptions(producto), [producto])
-  const [selectedColorId, setSelectedColorId] = useState(colorOptions[0]?.id || null)
-  const selectedColor =
-    colorOptions.find((option) => option.id === selectedColorId) || colorOptions[0] || null
+  const colorSwatches = useMemo(
+    () => buildProductSwatches(producto.imagen || ''),
+    [producto.imagen],
+  )
+  const resolvedModelOptions = useMemo(
+    () =>
+      modelOptions.length > 0
+        ? modelOptions
+        : [
+            {
+              id: producto.id,
+              label: producto.modelo || producto.nombre,
+              available: producto.stock > 0,
+            },
+          ],
+    [modelOptions, producto.id, producto.modelo, producto.nombre, producto.stock],
+  )
+  const [selectedColor, setSelectedColor] = useState(colorSwatches[0] || null)
+  const [selectedModelId, setSelectedModelId] = useState(resolvedModelOptions[0]?.id || null)
+  const [mainImage, setMainImage] = useState(colorSwatches[0]?.img || producto.imagen || '')
+  const [imageVisible, setImageVisible] = useState(true)
   const gallery = useMemo(() => {
-    if (selectedColor?.images?.length) {
-      return selectedColor.images.map((src, index) => ({
-        id: `${selectedColor.id}-image-${index}`,
-        src,
-        alt: `${producto.nombre} ${selectedColor.label} vista ${index + 1}`,
-        bg: index === 0 ? 'bg-white' : 'bg-[#f7f4ee]',
-      }))
+    const fallbackGallery = buildGallery(producto)
+
+    if (!mainImage) {
+      return fallbackGallery
     }
 
-    return buildGallery(producto)
-  }, [producto, selectedColor])
-  const [selectedImage, setSelectedImage] = useState(
-    selectedColor?.image || gallery[0]?.src || producto.imagen || '',
-  )
+    if (fallbackGallery.some((item) => item.src === mainImage)) {
+      return fallbackGallery
+    }
+
+    return [
+      {
+        id: 'selected-main',
+        src: mainImage,
+        alt: `${producto.nombre} color seleccionado`,
+        bg: 'bg-white',
+      },
+      ...fallbackGallery.slice(1),
+    ]
+  }, [mainImage, producto])
   const previousPrice = Math.round(Number(producto.precio) * 1.35)
-  const effectiveStock = selectedColor?.stock ?? producto.stock
+  const effectiveStock = producto.stock
 
   useEffect(() => {
-    setSelectedColorId(colorOptions[0]?.id || null)
-  }, [producto.id, colorOptions])
+    setSelectedColor(colorSwatches[0] || null)
+    setMainImage(colorSwatches[0]?.img || producto.imagen || '')
+  }, [colorSwatches, producto.id, producto.imagen])
 
   useEffect(() => {
-    setSelectedImage(selectedColor?.image || gallery[0]?.src || producto.imagen || '')
-  }, [gallery, producto.imagen, selectedColor])
+    setSelectedModelId(resolvedModelOptions[0]?.id || null)
+  }, [resolvedModelOptions])
+
+  useEffect(() => {
+    setImageVisible(false)
+    const frameId = window.requestAnimationFrame(() => {
+      setImageVisible(true)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [mainImage])
+
+  const handleColorSelect = (swatch) => {
+    setSelectedColor(swatch)
+    setMainImage(swatch.img)
+  }
 
   return (
     <section className="overflow-hidden rounded-[34px] border border-stone-100 bg-white shadow-[0_28px_80px_-50px_rgba(15,23,42,0.28)]">
       <div className="grid gap-8 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-10 lg:p-8">
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-[28px] bg-[#f8f5f1] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-            {selectedImage ? (
+            {mainImage ? (
               <img
-                src={selectedImage}
+                src={mainImage}
                 alt={producto.nombre}
-                className="h-[420px] w-full object-cover sm:h-[520px]"
+                className={`h-[420px] w-full object-cover transition-opacity duration-200 ease-out sm:h-[520px] ${
+                  imageVisible ? 'opacity-100' : 'opacity-0'
+                }`}
               />
             ) : (
               <div className="flex h-[420px] items-center justify-center text-sm text-stone-400 sm:h-[520px]">
@@ -131,13 +151,13 @@ export default function ProductDetailCard({
 
           <div className="flex gap-3 overflow-x-auto pb-1">
             {(gallery.length ? gallery : [{ id: 'fallback', src: '', alt: 'Sin imagen', bg: 'bg-stone-100' }]).map((item) => {
-              const active = item.src === selectedImage || (!item.src && !selectedImage)
+              const active = item.src === mainImage || (!item.src && !mainImage)
 
               return (
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => item.src && setSelectedImage(item.src)}
+                  onClick={() => item.src && setMainImage(item.src)}
                   className={`flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border transition-all ${
                     active
                       ? 'border-red-500 ring-2 ring-red-100'
@@ -184,29 +204,34 @@ export default function ProductDetailCard({
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
                 Color
               </p>
-              <div className="mt-3 flex items-center gap-2.5">
-                {colorOptions.map((option) => (
+              <div className="mt-3 flex items-center gap-2.5" role="radiogroup" aria-label="Seleccionar color">
+                {colorSwatches.map((swatch) => {
+                  const isActive = swatch.color === selectedColor?.color
+
+                  return (
                   <button
-                    key={option.id}
+                    key={swatch.color}
                     type="button"
-                    onClick={() => setSelectedColorId(option.id)}
-                    className={`relative h-7 w-7 rounded-full border-2 transition-transform hover:scale-105 ${
-                      option.id === selectedColor?.id ? 'border-stone-900' : 'border-transparent'
+                    onClick={() => handleColorSelect(swatch)}
+                    role="radio"
+                    aria-checked={isActive}
+                    aria-label={`Color ${swatch.color}`}
+                    className={`relative h-6 w-6 rounded-full transition duration-200 ease-out hover:scale-110 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 ${
+                      isActive ? 'ring-2 ring-offset-2 ring-red-500' : ''
                     }`}
-                    aria-label={option.label}
-                    aria-pressed={option.id === selectedColor?.id}
                   >
                     <span
-                      className={`block h-full w-full rounded-full ${option.className}`}
-                      style={option.colorHex ? { backgroundColor: option.colorHex } : undefined}
+                      className="block h-full w-full rounded-full"
+                      style={{ backgroundColor: swatch.color }}
                     />
-                    {option.id === selectedColor?.id && (
+                    {isActive && (
                       <span className="absolute inset-0 flex items-center justify-center text-white">
                         <Check size={12} />
                       </span>
                     )}
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -215,24 +240,23 @@ export default function ProductDetailCard({
                 Device model
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {(modelOptions.length > 0
-                  ? modelOptions
-                  : [{ id: producto.id, label: producto.modelo || producto.nombre, active: true, available: producto.stock > 0 }]
-                ).map((option) => (
+                {resolvedModelOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
-                    onClick={() => onSelectModel?.(option.id)}
+                    onClick={() => setSelectedModelId(option.id)}
                     className={`group relative overflow-hidden rounded-[20px] border px-5 py-4 text-center text-sm font-semibold transition-all duration-300 ${
-                      option.active
+                      option.id === selectedModelId
                         ? 'border-red-400 bg-red-50/80 text-red-500 shadow-[0_18px_35px_-28px_rgba(239,68,68,0.45)]'
                         : 'border-stone-200 bg-white text-stone-400 hover:border-stone-300 hover:text-stone-600 hover:shadow-[0_16px_32px_-28px_rgba(15,23,42,0.28)]'
                     }`}
-                    aria-pressed={option.active}
+                    aria-pressed={option.id === selectedModelId}
                   >
                     <span
                       className={`pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 ${
-                        option.active ? 'bg-[radial-gradient(circle_at_top,rgba(248,113,113,0.12),transparent_68%)] opacity-100' : 'group-hover:opacity-100 bg-[radial-gradient(circle_at_top,rgba(231,229,228,0.55),transparent_70%)]'
+                        option.id === selectedModelId
+                          ? 'bg-[radial-gradient(circle_at_top,rgba(248,113,113,0.12),transparent_68%)] opacity-100'
+                          : 'group-hover:opacity-100 bg-[radial-gradient(circle_at_top,rgba(231,229,228,0.55),transparent_70%)]'
                       }`}
                     />
                     <span className="relative block">{option.label}</span>

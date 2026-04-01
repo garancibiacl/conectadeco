@@ -322,11 +322,6 @@ export default function ProductDetail() {
     setQuantity((current) => Math.min(maxStock, current + 1))
   }
 
-  const handleSelectModel = (productId) => {
-    if (!productId || productId === producto?.id) return
-    navigate(`/producto/${productId}`)
-  }
-
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-10">
@@ -397,7 +392,6 @@ export default function ProductDetail() {
           onAddToCart={handleAddToCart}
           onBuyNow={handleBuyNow}
           onToggleFavorite={handleToggleFavorite}
-          onSelectModel={handleSelectModel}
         />
 
         <section className="mt-14">
