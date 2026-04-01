@@ -27,6 +27,16 @@ const DASHBOARD_SECTIONS = [
   { id: 'orders', label: 'Mis compras', icon: ReceiptText },
 ]
 
+const ORDER_SELECTIONS_STORAGE_KEY = 'order_item_selections'
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
 function formatCurrency(value) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`
 }
@@ -118,6 +128,105 @@ function getTrackingConfig(status) {
   }
 }
 
+function readOrderSelections() {
+  try {
+    const raw = localStorage.getItem(ORDER_SELECTIONS_STORAGE_KEY)
+    const parsed = JSON.parse(raw || '{}')
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+
+    return parsed
+  } catch {
+    return {}
+  }
+}
+
+function getOrderItemSelection(orderId, item) {
+  const selections = readOrderSelections()
+  const orderSelections = selections[String(orderId)]
+
+  if (!Array.isArray(orderSelections)) {
+    return null
+  }
+
+  return (
+    orderSelections.find((selection) => {
+      if (selection.product_id === item.producto_id) {
+        return true
+      }
+
+      return selection.nombre && item.nombre && selection.nombre === item.nombre
+    }) || null
+  )
+}
+
+function getCatalogProduct(productMap, item) {
+  if (item.producto_id && productMap.has(item.producto_id)) {
+    return productMap.get(item.producto_id)
+  }
+
+  const itemName = normalizeText(item.nombre)
+
+  for (const product of productMap.values()) {
+    const productName = normalizeText(product.nombre)
+
+    if (productName && itemName.startsWith(productName)) {
+      return product
+    }
+  }
+
+  return null
+}
+
+function extractVariantFromItemName(itemName, productName) {
+  const safeItemName = String(itemName || '').trim()
+  const safeProductName = String(productName || '').trim()
+
+  if (!safeItemName || !safeProductName) return null
+
+  const normalizedItem = normalizeText(safeItemName)
+  const normalizedProduct = normalizeText(safeProductName)
+
+  if (!normalizedItem.startsWith(normalizedProduct)) {
+    return null
+  }
+
+  const rawSuffix = safeItemName.slice(safeProductName.length).trim()
+
+  if (!rawSuffix.startsWith('-')) {
+    return null
+  }
+
+  const variant = rawSuffix.replace(/^-+\s*/, '').trim()
+  return variant || null
+}
+
+function getItemModelLabel(orderId, item, catalogProduct) {
+  return (
+    item.variant?.modelLabel ||
+    item.modelLabel ||
+    item.producto?.modelo ||
+    catalogProduct?.modelo ||
+    getOrderItemSelection(orderId, item)?.variant?.modelLabel ||
+    getOrderItemSelection(orderId, item)?.producto?.modelo ||
+    null
+  )
+}
+
+function getItemVariantLabel(orderId, item, catalogProduct) {
+  return (
+    item.variant?.label ||
+    item.color ||
+    item.variantLabel ||
+    extractVariantFromItemName(item.nombre, catalogProduct?.nombre) ||
+    getOrderItemSelection(orderId, item)?.variant?.label ||
+    getOrderItemSelection(orderId, item)?.variant?.color ||
+    null
+  )
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const { session, updateProfile } = useAuth()
@@ -135,6 +244,10 @@ export default function Dashboard() {
     0,
   )
   const favoriteProductsLabel = `${favorites.length} favorito${favorites.length === 1 ? '' : 's'} guardado${favorites.length === 1 ? '' : 's'}`
+  const productsById = useMemo(
+    () => new Map(productos.map((producto) => [producto.id, producto])),
+    [productos],
+  )
   const sectionMeta = useMemo(
     () => DASHBOARD_SECTIONS.find((section) => section.id === activeSection) || DASHBOARD_SECTIONS[0],
     [activeSection],
@@ -624,12 +737,32 @@ export default function Dashboard() {
                         >
                           <div className="min-h-0 space-y-3">
                             {pedido.items.map((item, index) => (
+                              (() => {
+                                const catalogProduct = getCatalogProduct(productsById, item)
+                                const modelLabel = getItemModelLabel(pedido.id, item, catalogProduct)
+                                const variantLabel = getItemVariantLabel(pedido.id, item, catalogProduct)
+
+                                return (
                               <div
                                 key={`${pedido.id}-${item.producto_id}-${index}`}
                                 className="flex items-start justify-between gap-4 rounded-2xl bg-[#fcfbf9] px-4 py-4"
                               >
                                 <div className="min-w-0">
                                   <p className="text-sm font-semibold text-slate-900">{item.nombre}</p>
+                                  {(modelLabel || variantLabel) && (
+                                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                      {modelLabel && (
+                                        <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
+                                          Modelo: {modelLabel}
+                                        </span>
+                                      )}
+                                      {variantLabel && (
+                                        <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
+                                          Variante: {variantLabel}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                   <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                                     <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
                                       Cantidad: {item.cantidad}
@@ -641,6 +774,8 @@ export default function Dashboard() {
                                   {formatCurrency(item.precio_unitario * item.cantidad)}
                                 </p>
                               </div>
+                                )
+                              })()
                             ))}
                           </div>
                         </div>

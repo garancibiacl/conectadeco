@@ -6,6 +6,50 @@ import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useShop } from '../context/ShopContext'
 
+const ORDER_SELECTIONS_STORAGE_KEY = 'order_item_selections'
+
+function readOrderSelections() {
+  try {
+    const raw = localStorage.getItem(ORDER_SELECTIONS_STORAGE_KEY)
+    const parsed = JSON.parse(raw || '{}')
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+
+    return parsed
+  } catch {
+    return {}
+  }
+}
+
+function writeOrderSelections(orderSelections) {
+  localStorage.setItem(ORDER_SELECTIONS_STORAGE_KEY, JSON.stringify(orderSelections))
+}
+
+function persistOrderSelectionSnapshot(orderId, items) {
+  if (!orderId || !Array.isArray(items) || items.length === 0) return
+
+  const selections = readOrderSelections()
+  selections[String(orderId)] = items.map((item) => ({
+    product_id: item.productoId,
+    nombre: item.producto?.nombre || null,
+    variant: item.variant
+      ? {
+          label: item.variant.label || null,
+          color: item.variant.color || null,
+          modelLabel: item.variant.modelLabel || null,
+        }
+      : null,
+    producto: item.producto
+      ? {
+          modelo: item.producto.modelo || null,
+        }
+      : null,
+  }))
+  writeOrderSelections(selections)
+}
+
 export default function Carrito() {
   const navigate = useNavigate()
   const { session } = useAuth()
@@ -54,6 +98,7 @@ export default function Carrito() {
       }
 
       const { data } = await api.post('/orders', payload)
+      persistOrderSelectionSnapshot(data?.pedido?.id, items)
 
       await Swal.fire({
         icon: 'success',
